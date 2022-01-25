@@ -64,6 +64,71 @@ namespace SmartCaraTest.controls
             }
         }
 
+        [Category("TitleSize"), Description("Set Title Size")]
+        public double TitleSize
+        {
+            get
+            {
+                return this.label.FontSize;
+            }
+            set
+            {
+                this.label.FontSize = value;
+            }
+        }
+
+        [Category("ContentSize"), Description("Set Content Size")]
+        public double ContentSize
+        {
+            get
+            {
+                return this.cont.FontSize;
+            }
+            set
+            {
+                this.cont.FontSize = value;
+            }
+        }
+
+        [Category("TitleBorderBrush"), Description("Set Title BorderBrush")]
+        public Brush TitleBroderBrush
+        {
+            get
+            {
+                return this.label.BorderBrush;
+            }
+            set
+            {
+                this.label.BorderBrush = value;
+            }
+        }
+
+        [Category("ContentBorderBrush"), Description("Set Content BorderBrush")]
+        public Brush ContentBroderBrush
+        {
+            get
+            {
+                return this.cont.BorderBrush;
+            }
+            set
+            {
+                this.cont.BorderBrush = value;
+            }
+        }
+
+        [Category("ContentWeight"), Description("Set ContentWeight")]
+        public FontWeight ContentWeight
+        {
+            get
+            {
+                return this.label.FontWeight;
+            }
+            set
+            {
+                this.label.FontWeight = value;
+            }
+        }
+
         [Category("ContentColor"), Description("Set Title Color")]
         public string ContentColor
         {

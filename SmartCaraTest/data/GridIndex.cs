@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SmartCaraTest.data
 {
-    public class ChartData
+    public class GridIndex
     {
-        public int Id { get; set; }
-        public int Value { get; set; }
+        public int Column { get; set; }
+        public int Row { get; set; }
     }
 }

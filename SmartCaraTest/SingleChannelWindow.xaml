@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SmartCaraTest" xmlns:controls="clr-namespace:SmartCaraTest.controls" xmlns:chartingToolkit="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=DotNetProjects.DataVisualization.Toolkit"
+        xmlns:local="clr-namespace:SmartCaraTest" 
+        xmlns:controls="clr-namespace:SmartCaraTest.controls" 
         mc:Ignorable="d"
         Title="SingleChannelWindow" Height="700" Width="1200">
     <Grid ShowGridLines="False">
@@ -31,7 +32,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <controls:DoubleLabel TitleBackground="#AAA" Title="연결 된 장치" Grid.Column="2" Margin="10, 0" x:Name="ConnectedChannel"/>
+            <!--<controls:DoubleLabel TitleBackground="#AAA" Title="연결 된 장치" Grid.Column="2" Margin="10, 0" x:Name="ConnectedChannel"/>-->
             <Button Grid.Column="3" Content="시작" Padding="30, 0"/>
             <Button Grid.Column="4" Content="파라미터" Padding="20, 0" Margin="20, 0" x:Name="ParameterButton" Click="ParameterButton_Click"/>
             <Label Grid.Column="5" Content="2022.02.01 ver 1.0.0" FontWeight="Black"/>
@@ -59,12 +60,12 @@
             <CheckBox x:Name="Check4" VerticalAlignment="Center" Grid.Row="3" Margin="5, 2"/>
             <CheckBox Visibility="Collapsed" x:Name="Check5" VerticalAlignment="Center" Grid.Row="4" Margin="5, 2"/>
             <CheckBox Visibility="Collapsed" x:Name="Check6" VerticalAlignment="Center" Grid.Row="5" Margin="5, 2"/>
-            <controls:DoubleLabel Title="히터온도" Grid.Column="1" x:Name="cont0" Margin="5, 3"/>
+            <!--<controls:DoubleLabel Title="히터온도" Grid.Column="1" x:Name="cont0" Margin="5, 3"/>
             <controls:DoubleLabel Title="배기온도" Grid.Row="1" Grid.Column="1" x:Name="cont1" Margin="5, 3"/>
             <controls:DoubleLabel Title="열풍히터온도" Grid.Row="2" Grid.Column="1" x:Name="cont2" Margin="5, 3"/>
             <controls:DoubleLabel Title="메인모터운전" Grid.Row="3" Grid.Column="1" x:Name="cont3" Margin="5, 3"/>
             <controls:DoubleLabel Title="배기팬 풍량" Grid.Row="4" Grid.Column="1" x:Name="cont4" Margin="5, 3"/>
-            <controls:DoubleLabel Title="운전 시간" Grid.Row="5" Grid.Column="1" x:Name="cont5" Margin="5, 3"/>
+            <controls:DoubleLabel Title="운전 시간" Grid.Row="5" Grid.Column="1" x:Name="cont5" Margin="5, 3"/>-->
             <CheckBox x:Name="Check11" VerticalAlignment="Center"  Grid.Column="2" Margin="5, 2"/>
             <CheckBox x:Name="Check12" VerticalAlignment="Center"  Grid.Row="1" Grid.Column="2" Margin="5, 2"/>
             <CheckBox x:Name="Check13" VerticalAlignment="Center"  Grid.Row="2" Grid.Column="2" Margin="5, 2"/>
@@ -108,7 +109,7 @@
             <controls:DualDoubleitemGroup Grid.Row="2" x:Name="motor"/>
             <controls:DualDoubleitemGroup Grid.Row="2" Grid.Column="2" x:Name="overflow"/>
         </Grid>
-        <chartingToolkit:Chart BorderThickness="0" Margin="0, 00, 0 , 0" Grid.Row="5" Grid.Column="1" x:Name="chart" Grid.ColumnSpan="2" Background="#FFF">
+        <!--<chartingToolkit:Chart BorderThickness="0" Margin="0, 00, 0 , 0" Grid.Row="5" Grid.Column="1" x:Name="chart" Grid.ColumnSpan="2" Background="#FFF">
             <chartingToolkit:LineSeries Title="히터 온도" x:Name="series1" FontSize="15"/>
             <chartingToolkit:LineSeries Title="히터오프타임" x:Name="series2" FontSize="15"/>
             <chartingToolkit:LineSeries Title="배기 온도" x:Name="series3" FontSize="15"/>
@@ -117,6 +118,6 @@
             <chartingToolkit:LineSeries Title="열풍히터Duty"  x:Name="series6"/>
             <chartingToolkit:LineSeries Title="메인모터운전"  x:Name="series7"/>
             <chartingToolkit:LineSeries Title="메인모터전류"  x:Name="series8"/>
-        </chartingToolkit:Chart>
+        </chartingToolkit:Chart>-->
     </Grid>
 </Window>

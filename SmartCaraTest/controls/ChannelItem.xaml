@@ -1,0 +1,59 @@
+﻿<UserControl x:Class="SmartCaraTest.controls.ChannelItem"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SmartCaraTest.controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="800">
+    <Border Margin="6" BorderBrush="#000" BorderThickness="1" Background="#FFF">
+        <Border.Effect>
+            <DropShadowEffect ShadowDepth="1" Color="#CFCFCF" Direction="315"/>
+        </Border.Effect>
+        <Grid ShowGridLines="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="5"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="5"/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>                
+                <RowDefinition/>
+                <RowDefinition Height="5"/>
+            </Grid.RowDefinitions>
+            <local:DoubleLabel Grid.Row="1" Grid.Column="1" Margin="5, 3" x:Name="Item1"/>
+            <local:DoubleLabel Grid.Row="2" Grid.Column="1" Margin="5, 3" x:Name="Item2"/>
+            <local:DoubleLabel Grid.Row="3" Grid.Column="1" Margin="5, 3" x:Name="Item3"/>
+            <local:DoubleLabel Grid.Row="4" Grid.Column="1" Margin="5, 3" x:Name="Item4"/>
+            <local:DoubleLabel Grid.Row="5" Grid.Column="1" Margin="5, 3" x:Name="Item5"/>
+            <local:DoubleLabel Grid.Row="6" Grid.Column="1" Margin="5, 3" x:Name="Item6"/>
+
+            <local:DoubleLabel Grid.Row="1" Grid.Column="2" Margin="5, 3" x:Name="Item11"/>
+            <local:DoubleLabel Grid.Row="2" Grid.Column="2" Margin="5, 3" x:Name="Item12"/>
+            <local:DoubleLabel Grid.Row="3" Grid.Column="2" Margin="5, 3" x:Name="Item13"/>
+            <local:DoubleLabel Grid.Row="4" Grid.Column="2" Margin="5, 3" x:Name="Item14"/>
+            <local:DoubleLabel Grid.Row="5" Grid.Column="2" Margin="5, 3" x:Name="Item15"/>
+            <local:DoubleLabel Grid.Row="6" Grid.Column="2" Margin="5, 3" x:Name="Item16"/>
+
+            <local:DoubleLabel Grid.Row="1" Grid.Column="3" Margin="5, 3" x:Name="Item21"/>
+            <local:DoubleLabel Grid.Row="2" Grid.Column="3" Margin="5, 3" x:Name="Item22"/>
+            <local:DoubleLabel Grid.Row="3" Grid.Column="3" Margin="5, 3" x:Name="Item23" TitleBackground="#EEE"/>
+            <local:DoubleLabel Grid.Row="4" Grid.Column="3" Margin="5, 3" x:Name="Item24" TitleBackground="#EEE"/>
+            <local:DoubleLabel Grid.Row="5" Grid.Column="3" Margin="5, 3" x:Name="Item25" TitleBackground="#EEE"/>
+            <local:DoubleLabel Grid.Row="6" Grid.Column="3" Margin="5, 3" x:Name="Item26" TitleBackground="#EEE"/>
+            <local:DoubleLabel TitleBroderBrush="Black" ContentBroderBrush="Black" ContentSize="20" TitleSize="20" Grid.RowSpan="2" x:Name="ChannelView" Grid.Row="1" Grid.Column="4" TitleBackground="#FFF" Margin="5, 3" Title="Channel"/>
+            <Button Grid.Row="3" Grid.Column="4" Margin="5, 3" Content="GRAPH" FontSize="17"/>
+            <Button Grid.Row="4" Grid.Column="4" Margin="5, 3" Content="PARAMETER" FontSize="17"/>
+            <Button Background="Transparent" BorderBrush="Blue" BorderThickness="1" Grid.Row="5" Grid.Column="4" Grid.RowSpan="1" Content="Start" Foreground="Blue" Margin="5, 5"/>
+            <Button Background="Transparent" BorderBrush="Red" BorderThickness="1" Grid.Row="6" Grid.Column="4" Grid.RowSpan="1" Content="Stop" Foreground="Red" Margin="5, 5"/>
+        </Grid>        
+    </Border>
+</UserControl>

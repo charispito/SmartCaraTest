@@ -1,18 +1,11 @@
-﻿using System;
+﻿using SmartCaraTest.data;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing;
 using System.Timers;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace SmartCaraTest
 {
@@ -21,92 +14,150 @@ namespace SmartCaraTest
     /// </summary>
     public partial class GraphWindow : Window
     {
-        private Timer timer = new Timer();
-        private Random random = new Random();
-        ObservableCollection<KeyValuePair<int, float>> list1 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list2 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list3 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list4 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list5 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list6 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list7 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list8 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list9 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list10 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list11 = new ObservableCollection<KeyValuePair<int, float>>();
-        ObservableCollection<KeyValuePair<int, float>> list12 = new ObservableCollection<KeyValuePair<int, float>>();
+        Random random = new Random();
+        
         public GraphWindow()
         {
             InitializeComponent();
-            series1.DataContext = list1;
-            series2.DataContext = list2;
+            List<ChartData> list = new List<ChartData>();
+            for(int i = 0; i < 7200; i++)
+            {
+                list.Add(new ChartData() { Id = i, Value = 1 });
+            }
+            graphInit(list);
 
-            series3.DataContext = list3;
-            series4.DataContext = list4;
-
-            series5.DataContext = list5;
-            series6.DataContext = list6;
-
-            series7.DataContext = list7;
-            series8.DataContext = list8;
-
-            series9.DataContext = list9;
-            series10.DataContext = list10;
-
-            series11.DataContext = list11;
-            series12.DataContext = list12;
-
-            Loaded += GraphWindow_Loaded;
-            Closed += GraphWindow_Closed;
         }
 
         private void GraphWindow_Closed(object sender, EventArgs e)
         {
-            timer.Stop();
-            timer.Dispose();
         }
 
         private void GraphWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            timer.Interval = 1000;
-            timer.Elapsed += Timer_Elapsed;
-            timer.Start();
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            Dispatcher.Invoke(new Action(() =>
+            
+        }
+
+        private void graphInit(List<ChartData> subMcuList) 
+        { 
+            Chart chartView = new Chart(); 
+            chartView.BackColor = Color.FromArgb(255, 255, 255, 255);
+            var view = GetChartArea(Color.Red, "(ºC)", 0, 100);
+            chartView.ChartAreas.Add(view);
+            //chartView.ChartAreas.Add(GetChartArea(Color.Blue, "(ºF)", 0, 300));
+            Series series = new Series(); 
+            series.ChartArea = "Default";
+            series.Name = "series1";
+            series.ChartType = SeriesChartType.Line;
+            series.XValueType = ChartValueType.Int32;
+            series.BackSecondaryColor = Color.Aquamarine;
+            series.LabelForeColor = Color.White;
+            series.Color = Color.SteelBlue;
+            series.IsValueShownAsLabel = true;
+            chartView.Series.Add(series);
+
+            Series series2 = new Series();
+            series2.ChartArea = "Default";
+            series2.Name = "series2";
+            series2.XValueType = ChartValueType.Int32;
+            series2.BackSecondaryColor = Color.Orange;
+            series2.LabelForeColor = Color.White;
+            series2.Color = Color.Red;
+            series2.ChartType = SeriesChartType.Line;
+            series2.IsValueShownAsLabel = true;
+            chartView.Series.Add(series2);
+
+            Legend legend = new Legend();
+            legend.ForeColor = Color.Red;
+            legend.Title = "ss";
+            legend.Enabled = false;
+            chartView.Legends.Add(legend);
+            host.Child = chartView;
+            chartView.Series[0].Points.AddXY(1, 0);
+            chartView.Series[0].Points.AddXY(0, 0);
+            CreateYAxis(chartView, view, series2, 13, 8);
+        }
+
+        private ChartArea GetChartArea(Color color, string label, int min, int max)
+        {
+            ChartArea chartArea = new ChartArea();
+            chartArea.Name = "Default";
+            chartArea.AxisX.IntervalAutoMode = IntervalAutoMode.FixedCount;
+            chartArea.AxisX.Interval = 5;
+            chartArea.AxisX.TitleForeColor = Color.Black;
+            chartArea.AxisX.LineColor = Color.Black;
+            chartArea.AxisX.MajorGrid.LineColor = Color.Black;
+            chartArea.AxisX.MajorGrid.Enabled = false;
+            chartArea.AxisX.LabelStyle.ForeColor = Color.Black;
+            chartArea.AxisX.MajorTickMark.LineColor = Color.Black;
+            chartArea.AxisY.LineColor = Color.Black;
+            chartArea.AxisY.TitleForeColor = Color.Black;
+            chartArea.AxisY.Maximum = max;
+            chartArea.AxisX.Minimum = 0;
+            chartArea.AxisX.Maximum = 120;
+            chartArea.AxisY.Title = label;
+            chartArea.AxisY.TitleForeColor = color;
+            chartArea.AxisY.TitleAlignment = StringAlignment.Near;
+            chartArea.AxisY.MajorGrid.LineColor = Color.FromArgb(255, 24, 24, 24);
+            chartArea.AxisY.LabelStyle.ForeColor = color;
+            chartArea.AxisY.MajorTickMark.LineColor = Color.Black;
+            int second = 0;
+            chartArea.AxisX.LabelStyle.Format = String.Format("{0:D1}분", second);
+            return chartArea;
+        }
+
+        public void CreateYAxis(Chart chart, ChartArea area, Series series, float axisOffset, float labelsSize)
+        {
+            ChartArea areaSeries = chart.ChartAreas.Add("ChartArea_" + series.Name);
+            areaSeries.BackColor = Color.Transparent;
+            areaSeries.BorderColor = Color.Transparent;
+            areaSeries.Position.FromRectangleF(area.Position.ToRectangleF());
+            areaSeries.InnerPlotPosition.FromRectangleF(area.InnerPlotPosition.ToRectangleF());
+            areaSeries.AxisX.MajorGrid.Enabled = false;
+            areaSeries.AxisX.MajorTickMark.Enabled = false;
+            areaSeries.AxisX.LabelStyle.Enabled = false;
+            areaSeries.AxisY.MajorGrid.Enabled = false;
+            areaSeries.AxisY.MajorTickMark.Enabled = false;
+            areaSeries.AxisY.LabelStyle.Enabled = false;
+            areaSeries.AxisY.IsStartedFromZero = area.AxisY.IsStartedFromZero;
+
+            series.ChartArea = areaSeries.Name;
+
+            // Create new chart area for axis
+            ChartArea areaAxis = chart.ChartAreas.Add("AxisY_" + series.ChartArea);
+            areaAxis.BackColor = Color.Transparent;
+            areaAxis.BorderColor = Color.Transparent;
+            areaAxis.Position.FromRectangleF(chart.ChartAreas[series.ChartArea].Position.ToRectangleF());
+            areaAxis.InnerPlotPosition.FromRectangleF(chart.ChartAreas[series.ChartArea].InnerPlotPosition.ToRectangleF());
+
+            // Create a copy of specified series
+            Series seriesCopy = chart.Series.Add(series.Name + "_Copy");
+            seriesCopy.ChartType = series.ChartType;
+            foreach (DataPoint point in series.Points)
             {
-                float data = random.Next(1, 200);
-                list1.Add(new KeyValuePair<int, float>(list1.Count, data));
-                float data2 = random.Next(1, 200);
-                list2.Add(new KeyValuePair<int, float>(list2.Count, data2));
+                seriesCopy.Points.AddXY(point.XValue, point.YValues[0]);
+            }
 
-                float data3 = random.Next(1, 200);
-                list3.Add(new KeyValuePair<int, float>(list3.Count, data3));
-                float data4 = random.Next(1, 200);
-                list4.Add(new KeyValuePair<int, float>(list4.Count, data4));
+            // Hide copied series
+            seriesCopy.IsVisibleInLegend = false;
+            seriesCopy.Color = Color.Transparent;
+            seriesCopy.BorderColor = Color.Transparent;
+            seriesCopy.ChartArea = areaAxis.Name;
 
-                float data5 = random.Next(1, 200);
-                list5.Add(new KeyValuePair<int, float>(list5.Count, data5));
-                float data6 = random.Next(1, 200);
-                list6.Add(new KeyValuePair<int, float>(list6.Count, data6));
+            // Disable grid lines & tickmarks
+            areaAxis.AxisX.LineWidth = 0;
+            areaAxis.AxisX.MajorGrid.Enabled = false;
+            areaAxis.AxisX.MajorTickMark.Enabled = false;
+            areaAxis.AxisX.LabelStyle.Enabled = false;
+            areaAxis.AxisY.MajorGrid.Enabled = false;
+            areaAxis.AxisY.IsStartedFromZero = area.AxisY.IsStartedFromZero;
 
-                float data7 = random.Next(1, 200);
-                list7.Add(new KeyValuePair<int, float>(list7.Count, data7));
-                float data8 = random.Next(1, 200);
-                list8.Add(new KeyValuePair<int, float>(list8.Count, data8));
-
-                float data9 = random.Next(1, 200);
-                list9.Add(new KeyValuePair<int, float>(list9.Count, data9));
-                float data10 = random.Next(1, 200);
-                list10.Add(new KeyValuePair<int, float>(list10.Count, data10));
-
-                float data11 = random.Next(1, 200);
-                list11.Add(new KeyValuePair<int, float>(list11.Count, data11));
-                float data12 = random.Next(1, 200);
-                list12.Add(new KeyValuePair<int, float>(list12.Count, data12));
-            }));
+            // Adjust area position
+            areaAxis.Position.X -= axisOffset;
+            areaAxis.InnerPlotPosition.X += labelsSize;
         }
     }
 }
