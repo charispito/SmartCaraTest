@@ -15,98 +15,114 @@ namespace SmartCaraTest
     public partial class GraphWindow : Window
     {
         Random random = new Random();
-        
+        Chart chart = new Chart();
+        Legend legend1 = new Legend();
+        ChartArea chartArea1 = new ChartArea();
+        Series series1 = new Series();
+        Series series2 = new Series();
+        Series series3 = new Series();
+        Timer timer1 = new Timer();
+        DateTime dateX = DateTime.Now.Date;
         public GraphWindow()
         {
             InitializeComponent();
-            List<ChartData> list = new List<ChartData>();
-            for(int i = 0; i < 7200; i++)
-            {
-                list.Add(new ChartData() { Id = i, Value = 1 });
-            }
-            graphInit(list);
-
+            graphInit();
+            
+            timer1.Interval = 1000;
+            timer1.Elapsed += Timer1_Elapsed;
+            Loaded += GraphWindow_Loaded1;
+            Closed += GraphWindow_Closed;
         }
 
         private void GraphWindow_Closed(object sender, EventArgs e)
         {
+            timer1.Stop();
+            timer1.Dispose();
         }
 
-        private void GraphWindow_Loaded(object sender, RoutedEventArgs e)
+        private void Timer1_Elapsed(object sender, ElapsedEventArgs e)
         {
+            Dispatcher.BeginInvoke(new Action(() => {
+                chart.Series["Series1"].Points.AddXY(dateX, random.Next(5, 100));
+                chart.Series["Series2"].Points.AddXY(dateX, random.Next(8000, 8200));
+                chart.Series["Series3"].Points.AddXY(dateX, random.Next(1000, 3000));
+                dateX = dateX.AddDays(1);
+            }));
+
         }
 
-        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void GraphWindow_Loaded1(object sender, RoutedEventArgs e)
         {
-            
+            timer1.Start();
         }
 
-        private void graphInit(List<ChartData> subMcuList) 
-        { 
-            Chart chartView = new Chart(); 
-            chartView.BackColor = Color.FromArgb(255, 255, 255, 255);
-            var view = GetChartArea(Color.Red, "(ºC)", 0, 100);
-            chartView.ChartAreas.Add(view);
-            //chartView.ChartAreas.Add(GetChartArea(Color.Blue, "(ºF)", 0, 300));
-            Series series = new Series(); 
-            series.ChartArea = "Default";
-            series.Name = "series1";
-            series.ChartType = SeriesChartType.Line;
-            series.XValueType = ChartValueType.Int32;
-            series.BackSecondaryColor = Color.Aquamarine;
-            series.LabelForeColor = Color.White;
-            series.Color = Color.SteelBlue;
-            series.IsValueShownAsLabel = true;
-            chartView.Series.Add(series);
+       
+        private void graphInit() 
+        {
+            chartArea1.AxisX.IntervalAutoMode = IntervalAutoMode.VariableCount;
+            chartArea1.AxisX.IsLabelAutoFit = false;
+            chartArea1.AxisX.LabelStyle.Font = new System.Drawing.Font("Trebuchet MS", 8.25F, System.Drawing.FontStyle.Bold);
+            chartArea1.AxisX.LabelStyle.Format = "MM/dd";
+            chartArea1.AxisX.LabelStyle.Interval = 0;
+            chartArea1.AxisX.LineColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            chartArea1.AxisX.MajorGrid.LineColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            chartArea1.AxisX.MajorTickMark.Size = 2F;
+            chartArea1.AxisY.IsLabelAutoFit = false;
+            chartArea1.AxisY.IsStartedFromZero = false;
+            chartArea1.AxisY.LabelStyle.Font = new Font("Trebuchet MS", 8.25F, System.Drawing.FontStyle.Bold);
+            chartArea1.AxisY.LabelStyle.Format = "N0";
+            chartArea1.AxisY.LineColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            chartArea1.AxisY.MajorGrid.LineColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            chartArea1.BackColor = Color.OldLace;
+            chartArea1.BackGradientStyle = GradientStyle.TopBottom;
+            chartArea1.BackSecondaryColor = Color.White;
+            chartArea1.BorderColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            chartArea1.Name = "Default";
+            chartArea1.ShadowColor = Color.Transparent;
+            chart.ChartAreas.Add(chartArea1);
+            legend1.BackColor = Color.Transparent;
+            legend1.Enabled = false;
+            legend1.Font = new Font("Trebuchet MS", 8.25F, System.Drawing.FontStyle.Bold);
+            legend1.IsTextAutoFit = false;
+            legend1.Name = "Default";
+            chart.Legends.Add(legend1);
+            chart.Name = "Chart";
 
-            Series series2 = new Series();
-            series2.ChartArea = "Default";
-            series2.Name = "series2";
-            series2.XValueType = ChartValueType.Int32;
-            series2.BackSecondaryColor = Color.Orange;
-            series2.LabelForeColor = Color.White;
-            series2.Color = Color.Red;
+            series1.BorderColor = Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(26)))), ((int)(((byte)(59)))), ((int)(((byte)(105)))));
+            series1.BorderWidth = 2;
+            series1.ChartArea = chartArea1.Name;
+            series1.ChartType = SeriesChartType.Line;
+            series1.Legend = "Default";
+            series1.Name = "Series1";
+            series1.ShadowColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            series1.ShadowOffset = 2;
+            series2.BorderColor = Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(26)))), ((int)(((byte)(59)))), ((int)(((byte)(105)))));
+            series2.BorderWidth = 2;
+            series2.ChartArea = chartArea1.Name;
             series2.ChartType = SeriesChartType.Line;
-            series2.IsValueShownAsLabel = true;
-            chartView.Series.Add(series2);
+            series2.Legend = "Default";
+            series2.Name = "Series2";
+            series2.ShadowColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            series2.ShadowOffset = 2;
+            series3.BorderColor = Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(26)))), ((int)(((byte)(59)))), ((int)(((byte)(105)))));
+            series3.BorderWidth = 2;
+            series3.ChartArea = chartArea1.Name;
+            series3.ChartType = SeriesChartType.Line;
+            series3.Legend = "Default";
+            series3.Name = "Series3";
+            series3.ShadowColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            series3.ShadowOffset = 2;
+            chart.Series.Add(series1);
+            chart.Series.Add(series2);
+            chart.Series.Add(series3);
+            host.Child = chart;
 
-            Legend legend = new Legend();
-            legend.ForeColor = Color.Red;
-            legend.Title = "ss";
-            legend.Enabled = false;
-            chartView.Legends.Add(legend);
-            host.Child = chartView;
-            chartView.Series[0].Points.AddXY(1, 0);
-            chartView.Series[0].Points.AddXY(0, 0);
-            CreateYAxis(chartView, view, series2, 13, 8);
-        }
+            //chart.ChartAreas["Default"].Position = new ElementPosition(25, 10, 68, 85);
+            //chart.ChartAreas["Default"].InnerPlotPosition = new ElementPosition(10, 0, 90, 90);
 
-        private ChartArea GetChartArea(Color color, string label, int min, int max)
-        {
-            ChartArea chartArea = new ChartArea();
-            chartArea.Name = "Default";
-            chartArea.AxisX.IntervalAutoMode = IntervalAutoMode.FixedCount;
-            chartArea.AxisX.Interval = 5;
-            chartArea.AxisX.TitleForeColor = Color.Black;
-            chartArea.AxisX.LineColor = Color.Black;
-            chartArea.AxisX.MajorGrid.LineColor = Color.Black;
-            chartArea.AxisX.MajorGrid.Enabled = false;
-            chartArea.AxisX.LabelStyle.ForeColor = Color.Black;
-            chartArea.AxisX.MajorTickMark.LineColor = Color.Black;
-            chartArea.AxisY.LineColor = Color.Black;
-            chartArea.AxisY.TitleForeColor = Color.Black;
-            chartArea.AxisY.Maximum = max;
-            chartArea.AxisX.Minimum = 0;
-            chartArea.AxisX.Maximum = 120;
-            chartArea.AxisY.Title = label;
-            chartArea.AxisY.TitleForeColor = color;
-            chartArea.AxisY.TitleAlignment = StringAlignment.Near;
-            chartArea.AxisY.MajorGrid.LineColor = Color.FromArgb(255, 24, 24, 24);
-            chartArea.AxisY.LabelStyle.ForeColor = color;
-            chartArea.AxisY.MajorTickMark.LineColor = Color.Black;
-            int second = 0;
-            chartArea.AxisX.LabelStyle.Format = String.Format("{0:D1}분", second);
-            return chartArea;
+            //// Create extra Y axis for second and third series
+            //CreateYAxis(chart, chart.ChartAreas["Default"], chart.Series["Series2"], 13, 8);
+            //CreateYAxis(chart, chart.ChartAreas["Default"], chart.Series["Series3"], 22, 8);
         }
 
         public void CreateYAxis(Chart chart, ChartArea area, Series series, float axisOffset, float labelsSize)
@@ -123,6 +139,7 @@ namespace SmartCaraTest
             areaSeries.AxisY.MajorTickMark.Enabled = false;
             areaSeries.AxisY.LabelStyle.Enabled = false;
             areaSeries.AxisY.IsStartedFromZero = area.AxisY.IsStartedFromZero;
+
 
             series.ChartArea = areaSeries.Name;
 
@@ -147,13 +164,14 @@ namespace SmartCaraTest
             seriesCopy.BorderColor = Color.Transparent;
             seriesCopy.ChartArea = areaAxis.Name;
 
-            // Disable grid lines & tickmarks
+            // Disable drid lines & tickmarks
             areaAxis.AxisX.LineWidth = 0;
             areaAxis.AxisX.MajorGrid.Enabled = false;
             areaAxis.AxisX.MajorTickMark.Enabled = false;
             areaAxis.AxisX.LabelStyle.Enabled = false;
             areaAxis.AxisY.MajorGrid.Enabled = false;
             areaAxis.AxisY.IsStartedFromZero = area.AxisY.IsStartedFromZero;
+            areaAxis.AxisY.LabelStyle.Font = area.AxisY.LabelStyle.Font;
 
             // Adjust area position
             areaAxis.Position.X -= axisOffset;
