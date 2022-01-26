@@ -22,7 +22,8 @@ namespace SmartCaraTest
         Series series2 = new Series();
         Series series3 = new Series();
         Timer timer1 = new Timer();
-        DateTime dateX = DateTime.Now.Date;
+        int second = 0;
+        double dateX = DateTime.MinValue.ToOADate();
         public GraphWindow()
         {
             InitializeComponent();
@@ -43,10 +44,11 @@ namespace SmartCaraTest
         private void Timer1_Elapsed(object sender, ElapsedEventArgs e)
         {
             Dispatcher.BeginInvoke(new Action(() => {
-                chart.Series["Series1"].Points.AddXY(dateX, random.Next(5, 100));
-                chart.Series["Series2"].Points.AddXY(dateX, random.Next(8000, 8200));
-                chart.Series["Series3"].Points.AddXY(dateX, random.Next(1000, 3000));
-                dateX = dateX.AddDays(1);
+                chart.Series["Series1"].Points.AddXY(dateX, random.Next(5, 50));
+                chart.Series["Series2"].Points.AddXY(dateX, random.Next(8000, 8050));
+                chart.Series["Series3"].Points.AddXY(dateX, random.Next(1000, 1300));
+                Console.WriteLine(dateX);
+                dateX = DateTime.FromOADate(dateX).AddSeconds(30).ToOADate();
             }));
 
         }
@@ -59,12 +61,27 @@ namespace SmartCaraTest
        
         private void graphInit() 
         {
-            chartArea1.AxisX.IntervalAutoMode = IntervalAutoMode.VariableCount;
+            DateTime dt0 = DateTime.MinValue;
+            chartArea1.Area3DStyle.Inclination = 15;
+            chartArea1.Area3DStyle.IsClustered = true;
+            chartArea1.Area3DStyle.IsRightAngleAxes = false;
+            chartArea1.Area3DStyle.Perspective = 10;
+            chartArea1.Area3DStyle.Rotation = 10;
+            chartArea1.Area3DStyle.WallWidth = 0;
+            chartArea1.AxisX.IntervalAutoMode = IntervalAutoMode.FixedCount;
             chartArea1.AxisX.IsLabelAutoFit = false;
             chartArea1.AxisX.LabelStyle.Font = new System.Drawing.Font("Trebuchet MS", 8.25F, System.Drawing.FontStyle.Bold);
-            chartArea1.AxisX.LabelStyle.Format = "MM/dd";
-            chartArea1.AxisX.LabelStyle.Interval = 0;
-            chartArea1.AxisX.LineColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            chartArea1.AxisX.LabelStyle.Format = "HH:mm";
+            chartArea1.AxisX.ScrollBar.IsPositionedInside = true;
+            chartArea1.AxisX.Interval = 5;
+            chartArea1.AxisX.Minimum = DateTime.MinValue.AddSeconds(0).ToOADate();
+            chartArea1.AxisX.Maximum = DateTime.MinValue.AddSeconds(7200).ToOADate();
+            chartArea1.AxisX.ScrollBar.Enabled = true;
+            chartArea1.CursorX.AutoScroll = true;
+            chartArea1.AxisX.ScrollBar.ButtonStyle = ScrollBarButtonStyles.SmallScroll;
+            chartArea1.AxisX.ScaleView.SmallScrollSize = 10;
+            chartArea1.AxisX.IntervalType = DateTimeIntervalType.Minutes;
+            chartArea1.AxisX.LineColor = Color.FromArgb(64, 64, 64, 64);
             chartArea1.AxisX.MajorGrid.LineColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             chartArea1.AxisX.MajorTickMark.Size = 2F;
             chartArea1.AxisY.IsLabelAutoFit = false;
@@ -73,8 +90,7 @@ namespace SmartCaraTest
             chartArea1.AxisY.LabelStyle.Format = "N0";
             chartArea1.AxisY.LineColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             chartArea1.AxisY.MajorGrid.LineColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            chartArea1.BackColor = Color.OldLace;
-            chartArea1.BackGradientStyle = GradientStyle.TopBottom;
+            chartArea1.BackColor = Color.White;
             chartArea1.BackSecondaryColor = Color.White;
             chartArea1.BorderColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             chartArea1.Name = "Default";
@@ -88,41 +104,39 @@ namespace SmartCaraTest
             chart.Legends.Add(legend1);
             chart.Name = "Chart";
 
-            series1.BorderColor = Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(26)))), ((int)(((byte)(59)))), ((int)(((byte)(105)))));
+            series1.Color = Color.DarkCyan;
             series1.BorderWidth = 2;
-            series1.ChartArea = chartArea1.Name;
+            series2.BorderWidth = 2;
+            series3.BorderWidth = 2;
+            series2.Color = Color.Green;
+            series3.Color = Color.HotPink;
+            series1.ChartArea = "Default";
             series1.ChartType = SeriesChartType.Line;
+            series1.XValueType = ChartValueType.DateTime;
+            series2.XValueType = ChartValueType.DateTime;
+            series3.XValueType = ChartValueType.DateTime;
             series1.Legend = "Default";
             series1.Name = "Series1";
-            series1.ShadowColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            series1.ShadowOffset = 2;
-            series2.BorderColor = Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(26)))), ((int)(((byte)(59)))), ((int)(((byte)(105)))));
-            series2.BorderWidth = 2;
-            series2.ChartArea = chartArea1.Name;
+            series2.ChartArea = "Default";
             series2.ChartType = SeriesChartType.Line;
             series2.Legend = "Default";
             series2.Name = "Series2";
-            series2.ShadowColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            series2.ShadowOffset = 2;
-            series3.BorderColor = Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(26)))), ((int)(((byte)(59)))), ((int)(((byte)(105)))));
-            series3.BorderWidth = 2;
-            series3.ChartArea = chartArea1.Name;
+            series3.ChartArea = "Default";
             series3.ChartType = SeriesChartType.Line;
             series3.Legend = "Default";
             series3.Name = "Series3";
-            series3.ShadowColor = Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            series3.ShadowOffset = 2;
             chart.Series.Add(series1);
             chart.Series.Add(series2);
             chart.Series.Add(series3);
+            chart.TabIndex = 1;
             host.Child = chart;
 
-            //chart.ChartAreas["Default"].Position = new ElementPosition(25, 10, 68, 85);
-            //chart.ChartAreas["Default"].InnerPlotPosition = new ElementPosition(10, 0, 90, 90);
+            chart.ChartAreas["Default"].Position = new ElementPosition(25, 10, 68, 85);
+            chart.ChartAreas["Default"].InnerPlotPosition = new ElementPosition(10, 0, 90, 90);
 
-            //// Create extra Y axis for second and third series
-            //CreateYAxis(chart, chart.ChartAreas["Default"], chart.Series["Series2"], 13, 8);
-            //CreateYAxis(chart, chart.ChartAreas["Default"], chart.Series["Series3"], 22, 8);
+            // Create extra Y axis for second and third series
+            //CreateYAxis(chart, chartArea1, series2, 13, 8);
+            //CreateYAxis(chart, chartArea1, series3, 22, 8);
         }
 
         public void CreateYAxis(Chart chart, ChartArea area, Series series, float axisOffset, float labelsSize)
@@ -133,6 +147,11 @@ namespace SmartCaraTest
             areaSeries.Position.FromRectangleF(area.Position.ToRectangleF());
             areaSeries.InnerPlotPosition.FromRectangleF(area.InnerPlotPosition.ToRectangleF());
             areaSeries.AxisX.MajorGrid.Enabled = false;
+            areaSeries.AxisX.IntervalAutoMode = IntervalAutoMode.FixedCount;
+            areaSeries.AxisX.Interval = 5;
+            areaSeries.AxisX.Minimum = DateTime.MinValue.AddSeconds(0).ToOADate();
+            areaSeries.AxisX.Maximum = DateTime.MinValue.AddSeconds(7200).ToOADate();
+            areaSeries.AxisX.IntervalType = DateTimeIntervalType.Minutes;
             areaSeries.AxisX.MajorTickMark.Enabled = false;
             areaSeries.AxisX.LabelStyle.Enabled = false;
             areaSeries.AxisY.MajorGrid.Enabled = false;
