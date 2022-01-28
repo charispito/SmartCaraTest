@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,43 @@ namespace SmartCaraTest.controls
         public OneItemGroup()
         {
             InitializeComponent();
+        }
+        [Category("Text"), Description("Set Text")]
+        public string Text
+        {
+            get
+            {
+                return this.Title.Content.ToString();
+            }
+            set
+            {
+                this.Title.Content = value;
+            }
+        }
+        [Category("Text"), Description("Set Text")]
+        public string Content1
+        {
+            get
+            {
+                return this.Item1Title.Content.ToString();
+            }
+            set
+            {
+                this.Item1Title.Content = value;
+            }
+        }
+
+        [Category("Text"), Description("Set Text")]
+        public string Unit1
+        {
+            get
+            {
+                return this.Unit.Content.ToString();
+            }
+            set
+            {
+                this.Unit.Content = value;
+            }
         }
     }
 }

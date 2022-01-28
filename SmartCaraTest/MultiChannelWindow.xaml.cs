@@ -28,6 +28,9 @@ namespace SmartCaraTest
             {
                 addView(i, i);
             }
+            AllGrapButton.Click += (s, e) => {
+                new AllGraphWindow().ShowDialog();
+            };
         }
 
         private GridIndex getIndex(int index)

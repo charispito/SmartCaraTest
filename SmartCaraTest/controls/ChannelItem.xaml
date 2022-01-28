@@ -50,10 +50,10 @@
             <local:DoubleLabel Grid.Row="5" Grid.Column="3" Margin="5, 3" x:Name="Item25" TitleBackground="#EEE"/>
             <local:DoubleLabel Grid.Row="6" Grid.Column="3" Margin="5, 3" x:Name="Item26" TitleBackground="#EEE"/>
             <local:DoubleLabel TitleBroderBrush="Black" ContentBroderBrush="Black" ContentSize="20" TitleSize="20" Grid.RowSpan="2" x:Name="ChannelView" Grid.Row="1" Grid.Column="4" TitleBackground="#FFF" Margin="5, 3" Title="Channel"/>
-            <Button Grid.Row="3" Grid.Column="4" Margin="5, 3" Content="GRAPH" FontSize="17"/>
-            <Button Grid.Row="4" Grid.Column="4" Margin="5, 3" Content="PARAMETER" FontSize="17"/>
-            <Button Background="Transparent" BorderBrush="Blue" BorderThickness="1" Grid.Row="5" Grid.Column="4" Grid.RowSpan="1" Content="Start" Foreground="Blue" Margin="5, 5"/>
-            <Button Background="Transparent" BorderBrush="Red" BorderThickness="1" Grid.Row="6" Grid.Column="4" Grid.RowSpan="1" Content="Stop" Foreground="Red" Margin="5, 5"/>
+            <Button Grid.Row="3" Grid.Column="4" Margin="5, 3" Content="그래프" FontSize="17"/>
+            <Button Grid.Row="4" Grid.Column="4" Margin="5, 3" Content="파라미터" FontSize="17"/>
+            <Button Background="Transparent" FontSize="16" BorderBrush="Blue" BorderThickness="1" Grid.Row="5" Grid.Column="4" Grid.RowSpan="1" Content="Start" Foreground="Blue" Margin="5, 5"/>
+            <Button Background="Transparent" FontSize="16" BorderBrush="Red" BorderThickness="1" Grid.Row="6" Grid.Column="4" Grid.RowSpan="1" Content="Stop" Foreground="Red" Margin="5, 5"/>
         </Grid>        
     </Border>
 </UserControl>

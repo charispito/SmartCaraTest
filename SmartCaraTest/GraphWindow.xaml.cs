@@ -131,8 +131,8 @@ namespace SmartCaraTest
             chart.TabIndex = 1;
             host.Child = chart;
 
-            chart.ChartAreas["Default"].Position = new ElementPosition(25, 10, 68, 85);
-            chart.ChartAreas["Default"].InnerPlotPosition = new ElementPosition(10, 0, 90, 90);
+            //chart.ChartAreas["Default"].Position = new ElementPosition(25, 10, 68, 85);
+            //chart.ChartAreas["Default"].InnerPlotPosition = new ElementPosition(10, 0, 90, 90);
 
             // Create extra Y axis for second and third series
             //CreateYAxis(chart, chartArea1, series2, 13, 8);

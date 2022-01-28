@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,122 @@ namespace SmartCaraTest.controls
         public FourItemGroup()
         {
             InitializeComponent();
+        }
+
+        [Category("Text"), Description("Set Text")]
+        public string Text
+        {
+            get
+            {
+                return this.Title.Content.ToString();
+            }
+            set
+            {
+                this.Title.Content = value;
+            }
+        }
+        [Category("Text"), Description("Set Text")]
+        public string Content1
+        {
+            get
+            {
+                return this.Item1Title.Content.ToString();
+            }
+            set
+            {
+                this.Item1Title.Content = value;
+            }
+        }
+
+        [Category("Text"), Description("Set Text")]
+        public string Unit1
+        {
+            get
+            {
+                return this.Unit.Content.ToString();
+            }
+            set
+            {
+                this.Unit.Content = value;
+            }
+        }
+
+        [Category("Text"), Description("Set Text")]
+        public string Content2
+        {
+            get
+            {
+                return this.Item2Title.Content.ToString();
+            }
+            set
+            {
+                this.Item2Title.Content = value;
+            }
+        }
+
+        [Category("Text"), Description("Set Text")]
+        public string Unit2Text
+        {
+            get
+            {
+                return this.Unit2.Content.ToString();
+            }
+            set
+            {
+                this.Unit2.Content = value;
+            }
+        }
+
+        [Category("Text"), Description("Set Text")]
+        public string Content3
+        {
+            get
+            {
+                return this.Item3Title.Content.ToString();
+            }
+            set
+            {
+                this.Item3Title.Content = value;
+            }
+        }
+
+        [Category("Text"), Description("Set Text")]
+        public string Unit3Text
+        {
+            get
+            {
+                return this.Unit3.Content.ToString();
+            }
+            set
+            {
+                this.Unit3.Content = value;
+            }
+        }
+
+        [Category("Text"), Description("Set Text")]
+        public string Content4
+        {
+            get
+            {
+                return this.Item4Title.Content.ToString();
+            }
+            set
+            {
+                this.Item4Title.Content = value;
+            }
+        }
+
+        [Category("Text"), Description("Set Text")]
+        public string Unit4Text
+        {
+            get
+            {
+                return this.Unit4.Content.ToString();
+            }
+            set
+            {
+                this.Unit4.Content = value;
+            }
         }
     }
 }
