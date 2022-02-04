@@ -1,4 +1,5 @@
-﻿using SmartCaraTest.data;
+﻿using Microsoft.Data.Sqlite;
+using SmartCaraTest.data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -26,6 +27,7 @@ namespace SmartCaraTest
             InitializeComponent();
             init();
             initCheckbox();
+
             //Loaded += SingleChannelWindow_Loaded;
             //check1.Checked += CheckBox_Checked;
             //check2.Checked += CheckBox_Checked;

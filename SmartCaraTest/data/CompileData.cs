@@ -76,7 +76,7 @@ namespace SmartCaraTest.data
             }
             catch (StackOverflowException e)
             {
-
+                Console.WriteLine(e.ToString());
             }
 
         }

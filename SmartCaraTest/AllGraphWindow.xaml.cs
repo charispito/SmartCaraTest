@@ -21,7 +21,7 @@ namespace SmartCaraTest
     /// </summary>
     public partial class AllGraphWindow : Window
     {
-        List<ChartView> charts = new List<ChartView>();
+        List<WPFChartView> charts = new List<WPFChartView>();
         public AllGraphWindow()
         {
             InitializeComponent();
@@ -36,7 +36,7 @@ namespace SmartCaraTest
 
         private void AllGraphWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            foreach (ChartView chart in charts)
+            foreach (WPFChartView chart in charts)
             {
                 chart.timer.Stop();
                 chart.timer.Dispose();
@@ -45,7 +45,7 @@ namespace SmartCaraTest
 
         private void AllGraphWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            foreach(ChartView chart in charts)
+            foreach(WPFChartView chart in charts)
             {
                 chart.timer.Start();
             }
@@ -62,7 +62,7 @@ namespace SmartCaraTest
         }
         private void addView(int channel, int index)
         {
-            ChartView item = new ChartView(channel + 1);
+            WPFChartView item = new WPFChartView(channel);
             var info = getIndex(index);
             Grid.SetColumn(item, info.Column);
             Grid.SetRow(item, info.Row);

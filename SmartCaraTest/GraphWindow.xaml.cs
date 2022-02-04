@@ -22,7 +22,6 @@ namespace SmartCaraTest
         Series series2 = new Series();
         Series series3 = new Series();
         Timer timer1 = new Timer();
-        int second = 0;
         double dateX = DateTime.MinValue.ToOADate();
         public GraphWindow()
         {
@@ -50,7 +49,6 @@ namespace SmartCaraTest
                 Console.WriteLine(dateX);
                 dateX = DateTime.FromOADate(dateX).AddSeconds(30).ToOADate();
             }));
-
         }
 
         private void GraphWindow_Loaded1(object sender, RoutedEventArgs e)
