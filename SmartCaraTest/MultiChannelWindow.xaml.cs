@@ -21,6 +21,7 @@ namespace SmartCaraTest
     /// </summary>
     public partial class MultiChannelWindow : Window
     {
+        public List<ChannelItem> Channels { get; set; }
         public MultiChannelWindow()
         {
             InitializeComponent();

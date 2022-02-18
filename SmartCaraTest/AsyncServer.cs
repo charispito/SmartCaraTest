@@ -1,4 +1,5 @@
-﻿using SmartCaraTest.util;
+﻿using SmartCaraTest.controls;
+using SmartCaraTest.util;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +22,12 @@ namespace SmartCaraTest
         Thread CheckThread = null;
         TcpListener listener = null;
         bool run = false;
+        MultiChannelWindow window;
+
+        public AsyncServer(MultiChannelWindow window)
+        {
+            this.window = window;
+        }
 
         public void Start()
         {
@@ -64,7 +71,6 @@ namespace SmartCaraTest
                     if (!run)
                         break;
                 }
-
             }
             Console.WriteLine("Server Closed");
         }
@@ -85,6 +91,35 @@ namespace SmartCaraTest
         private void OnDisconnected(ClientData data)
         {
 
+        }
+
+        private void RemoveView(ChannelItem item)
+        {
+            int count = 7;
+            window.MainGrid.Children.Remove(item);
+            int index = window.Channels.IndexOf(item);
+            window.Channels.RemoveAt(index);
+            if(index == (count - 1))
+            {
+                return;
+            }
+            for(int i = index; i < window.Channels.Count; i++)
+            {
+                int col = i % 2;
+                int row = i / 2 + 1;
+                window.Channels[i].Column = col;
+                window.Channels[i].Row = row;
+            }
+        }
+
+        private string byteToString(byte[] data)
+        {
+            string hex = "";
+            foreach (byte b in data)
+            {
+                hex += " " + b.ToString("X2");
+            }
+            return hex;
         }
 
         private void OnDataReceived(ClientData data)

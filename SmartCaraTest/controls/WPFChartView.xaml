@@ -15,13 +15,15 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <Label FontSize="14" HorizontalAlignment="Right" x:Name="Channel" FontWeight="Black"/>
-            <charting:Chart x:Name="chart" Background="#FFF" Grid.Row="0" Grid.RowSpan="2" BorderThickness="0" Padding="5,0,10,0">
+            <charting:Chart x:Name="chart" Background="#FFF" Grid.Row="0" Grid.RowSpan="2" BorderThickness="0" Padding="5,0,5,0">
                 <charting:LineSeries Name="series1" ItemsSource="{Binding}" DependentValuePath="Value" IndependentValuePath="Key"/>
                 <charting:LineSeries Name="series2" ItemsSource="{Binding}" DependentValuePath="Value" IndependentValuePath="Key"/>
                 <charting:LineSeries Name="series3" ItemsSource="{Binding}" DependentValuePath="Value" IndependentValuePath="Key"/>
                 <charting:LineSeries Name="series4" ItemsSource="{Binding}" DependentValuePath="Value" IndependentValuePath="Key"/>
                 <charting:LineSeries Name="series5" ItemsSource="{Binding}" DependentValuePath="Value" IndependentValuePath="Key"/>
                 <charting:LineSeries Name="series6" ItemsSource="{Binding}" DependentValuePath="Value" IndependentValuePath="Key"/>
+                <charting:LineSeries Name="series7" ItemsSource="{Binding}" DependentValuePath="Value" IndependentValuePath="Key"/>
+                <charting:LineSeries Name="series8" ItemsSource="{Binding}" DependentValuePath="Value" IndependentValuePath="Key"/>
                 <charting:Chart.LegendStyle>
                     <Style TargetType="dv:Legend">
                         <Setter Property="Width" Value="0"/>
@@ -33,6 +35,42 @@
                     </Style>
                 </charting:Chart.PlotAreaStyle>
             </charting:Chart>
+            <Grid Margin="5, 10, 5, 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Label Background="Green" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Grid.Column="1" FontSize="13" Name="series1Legend"/>
+                <Label Background="Red" Grid.Column="2" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Grid.Column="3" FontSize="13" Name="series2Legend"/>
+                <Label Background="Blue" Grid.Column="4" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Grid.Column="5" FontSize="13" Name="series3Legend"/>
+                <Label Background="Yellow" Grid.Column="6" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Grid.Column="7" FontSize="13" Name="series4Legend"/>
+                <Label Background="Brown" Grid.Column="8" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Grid.Column="9" FontSize="13" Name="series5Legend"/>
+                <Label Background="DarkOrchid" Grid.Column="10" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Grid.Column="11" FontSize="13" Name="series6Legend"/>
+                <Label Background="SpringGreen" Grid.Column="12" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Grid.Column="13" FontSize="13" Name="series7Legend"/>
+                <Label Background="Magenta" Grid.Column="14" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Grid.Column="15" FontSize="13" Name="series8Legend"/>
+            </Grid>
         </Grid>
     </Border>
 </UserControl>
