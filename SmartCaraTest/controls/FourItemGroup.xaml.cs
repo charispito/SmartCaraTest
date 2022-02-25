@@ -52,6 +52,55 @@ namespace SmartCaraTest.controls
         }
 
         [Category("Text"), Description("Set Text")]
+        public string Value1Text
+        {
+            get
+            {
+                return this.Value1.Content.ToString();
+            }
+            set
+            {
+                this.Value1.Content = value;
+            }
+        }
+        [Category("Text"), Description("Set Text")]
+        public string Value2Text
+        {
+            get
+            {
+                return this.Value2.Content.ToString();
+            }
+            set
+            {
+                this.Value2.Content = value;
+            }
+        }
+        [Category("Text"), Description("Set Text")]
+        public string Value3Text
+        {
+            get
+            {
+                return this.Value3.Content.ToString();
+            }
+            set
+            {
+                this.Value3.Content = value;
+            }
+        }
+        [Category("Text"), Description("Set Text")]
+        public string Value4Text
+        {
+            get
+            {
+                return this.Value4.Content.ToString();
+            }
+            set
+            {
+                this.Value4.Content = value;
+            }
+        }
+
+        [Category("Text"), Description("Set Text")]
         public string Unit1
         {
             get

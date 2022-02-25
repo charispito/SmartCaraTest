@@ -25,13 +25,13 @@
             </Grid.ColumnDefinitions>
             <Label Grid.ColumnSpan="3" x:Name="Title" FontWeight="Black" Foreground="Black" FontSize="13"/>
             <Label Grid.Row="3" HorizontalContentAlignment="Center" x:Name="Item1Title" FontWeight="Black" Foreground="Black" FontSize="17"/>
-            <Label Grid.Column="1" Grid.Row="3" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
-            <Label Grid.Column="3" Grid.Row="3" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
+            <Label VerticalContentAlignment="Center" Grid.Column="1" Grid.Row="3" FontSize="17" x:Name="Value11" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
+            <Label VerticalContentAlignment="Center" Grid.Column="3" Grid.Row="3" FontSize="17" x:Name="Value12" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
             <Label x:Name="Header1Text" Grid.Row="2" Grid.Column="1" FontSize="15" FontWeight="Black" HorizontalContentAlignment="Center" HorizontalAlignment="Center"/>
             <Label x:Name="Header2Text" Grid.Row="2" Grid.Column="3" FontSize="15" FontWeight="Black" HorizontalContentAlignment="Center" HorizontalAlignment="Center"/>
             <Label Grid.Row="5" HorizontalContentAlignment="Center" x:Name="Item2Title" FontWeight="Black" Foreground="Black" FontSize="17"/>
-            <Label Grid.Column="1" Grid.Row="5" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
-            <Label Grid.Column="3" Grid.Row="5" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
+            <Label VerticalContentAlignment="Center" Grid.Column="1" Grid.Row="5" FontSize="17" x:Name="Value21" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
+            <Label VerticalContentAlignment="Center" Grid.Column="3" Grid.Row="5" FontSize="17" x:Name="Value22" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
         </Grid>
     </Border>
 </UserControl>

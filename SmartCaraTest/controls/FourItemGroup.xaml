@@ -26,19 +26,19 @@
             </Grid.ColumnDefinitions>
             <Label Grid.ColumnSpan="3" x:Name="Title" FontWeight="Black" Foreground="Black" FontSize="13"/>
             <Label Grid.Row="2" HorizontalContentAlignment="Center" x:Name="Item1Title" FontWeight="Black" Foreground="Black" FontSize="17"/>
-            <Label Grid.Column="1" Grid.Row="2" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
+            <Label Grid.Column="1" x:Name="Value1" Grid.Row="2" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
             <Label Grid.Row="2" Grid.Column="2" FontSize="17" FontWeight="Black" Margin="5,0" x:Name="Unit"/>
 
             <Label Grid.Row="4" HorizontalContentAlignment="Center" x:Name="Item2Title" FontWeight="Black" Foreground="Black" FontSize="17"/>
-            <Label Grid.Column="1" Grid.Row="4" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
+            <Label Grid.Column="1" x:Name="Value2" Grid.Row="4" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
             <Label Grid.Row="4" Grid.Column="2" FontSize="17" FontWeight="Black" Margin="5,0" x:Name="Unit2"/>
 
             <Label Grid.Row="6" HorizontalContentAlignment="Center" x:Name="Item3Title" FontWeight="Black" Foreground="Black" FontSize="17"/>
-            <Label Grid.Column="1" Grid.Row="6" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
+            <Label Grid.Column="1" x:Name="Value3" Grid.Row="6" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
             <Label Grid.Row="6" Grid.Column="2" FontSize="17" FontWeight="Black" Margin="5,0" x:Name="Unit3"/>
 
             <Label Grid.Row="8" HorizontalContentAlignment="Center" x:Name="Item4Title" FontWeight="Black" Foreground="Black" FontSize="17"/>
-            <Label Grid.Column="1" Grid.Row="8" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
+            <Label Grid.Column="1" x:Name="Value4" Grid.Row="8" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
             <Label Grid.Row="8" Grid.Column="2" FontSize="17" FontWeight="Black" Margin="5,0" x:Name="Unit4"/>
         </Grid>
     </Border>

@@ -1,41 +1,44 @@
-﻿using SmartCaraTest.data;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Net.Sockets;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 
 namespace SmartCaraTest.controls
 {
     /// <summary>
-    /// ChannelItem.xaml에 대한 상호 작용 논리
+    /// OneChannelValueDetail.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class ChannelItem : UserControl
+    public partial class OneChannelValueDetail : UserControl
     {
-        public bool Response = false;
-        public int NonResponse { get; set; } = 0;
-        public ObservableCollection<KeyValuePair<DateTime, int>> list1 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list2 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list3 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list4 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list5 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list6 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list7 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list8 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public TcpClient client { get; set; }
-        private int _Channel;
-
-        public int Channel {
-            get { return _Channel; }
-            set
-            {
-                _Channel = value;
-                Dispatcher.Invoke(new Action(() => { ChannelView.cont.Content = value; }));
+        private int _ConnectState = 0;
+        public int ConnectState
+        {
+            get { return _ConnectState; }
+            set { 
+                _ConnectState = value;
+                if(value == 0)
+                {
+                    ChannelView.Text = "연결안됨";
+                    ChannelView.cont.Foreground = Brushes.Red;
+                }
+                else
+                {
+                    ChannelView.Text = "연결됨";
+                    ChannelView.cont.Foreground = Brushes.Blue;
+                }
             }
         }
-        
-        public ChannelItem()
+        public OneChannelValueDetail()
         {
             InitializeComponent();
             Item1.MouseLeftButtonDown += (s, e) => {
@@ -62,30 +65,8 @@ namespace SmartCaraTest.controls
             Item14.MouseLeftButtonDown += (s, e) => {
                 typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item8Check, new object[0]);
             };
-            StartButton.Click += StartButton_Click;
-            StopButton.Click += StopButton_Click;
-            
         }
 
-        private void StopButton_Click(object sender, RoutedEventArgs e)
-        {
-            byte[] command = Protocol.GetCommand(3);
-            client.GetStream().Write(command, 0, command.Length);
-        }
-
-        private void StartButton_Click(object sender, RoutedEventArgs e)
-        {
-            byte[] command = Protocol.GetCommand(2);
-            client.GetStream().Write(command, 0, command.Length);
-            list1.Clear();
-            list2.Clear();
-            list3.Clear();
-            list4.Clear();
-            list5.Clear();
-            list6.Clear();
-            list7.Clear();
-            list8.Clear();
-        }
 
         public void setHandler(RoutedEventHandler handler)
         {

@@ -23,19 +23,13 @@ namespace SmartCaraTest.controls
     /// </summary>
     public partial class WPFChartView : UserControl
     {
-        private ObservableCollection<KeyValuePair<DateTime, int>> list1 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        private ObservableCollection<KeyValuePair<DateTime, int>> list2 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        private ObservableCollection<KeyValuePair<DateTime, int>> list3 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        private ObservableCollection<KeyValuePair<DateTime, int>> list4 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        private ObservableCollection<KeyValuePair<DateTime, int>> list5 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        private ObservableCollection<KeyValuePair<DateTime, int>> list6 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        private ObservableCollection<KeyValuePair<DateTime, int>> list7 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        private ObservableCollection<KeyValuePair<DateTime, int>> list8 = new ObservableCollection<KeyValuePair<DateTime, int>>();
         public Timer timer = new Timer();
         private Random random = new Random();
         private DateTime dateX = DateTime.Now;
         private int yInterval = 20;
         private int xInterval = 10;
+        public List<LineSeries> seriesList = new List<LineSeries>();
+        public List<LinearAxis> Yaxis = new List<LinearAxis>();
 
         public WPFChartView(int channel)
         {
@@ -71,13 +65,16 @@ namespace SmartCaraTest.controls
             series4.IndependentAxis = Time;
             series5.IndependentAxis = Time;
             series6.IndependentAxis = Time;
-            setStyle(series1, Brushes.Aqua);
-            setStyle(series2, Brushes.Chocolate);
-            setStyle(series3, Brushes.OrangeRed);
-
+            series7.IndependentAxis = Time;
+            series8.IndependentAxis = Time;
+            setStyle(series1, Brushes.Green);
+            setStyle(series2, Brushes.Red);
+            setStyle(series3, Brushes.Blue);
             setStyle(series4, Brushes.Yellow);
-            setStyle(series5, Brushes.Gainsboro);
-            setStyle(series6, Brushes.BlueViolet);
+            setStyle(series5, Brushes.Brown);
+            setStyle(series6, Brushes.DarkOrchid);
+            setStyle(series7, Brushes.SpringGreen);
+            setStyle(series8, Brushes.Magenta);
 
 
             LinearAxis axis2 = new LinearAxis();
@@ -96,22 +93,19 @@ namespace SmartCaraTest.controls
             axis3.Foreground = Brushes.Green;
             axis3.Location = AxisLocation.Left;
             axis3.Interval = 0.2;
-
+            
             axis.AxisLabelStyle = verticalStyle;
             axis2.AxisLabelStyle = verticalStyle;
             axis3.AxisLabelStyle = verticalStyle;
-            series3.DependentRangeAxis = axis3;
-            series4.DependentRangeAxis = axis3;
-            series5.DependentRangeAxis = axis3;
-            series6.DependentRangeAxis = axis2;
-            series1.ItemsSource = list1;
-            series2.ItemsSource = list2;
-            series3.ItemsSource = list3;
-            series4.ItemsSource = list4;
-            series5.ItemsSource = list5;
-            series6.ItemsSource = list6;
-            timer.Interval = 1000;
-            timer.Elapsed += Timer_Elapsed;
+            Yaxis.Add(axis);
+            Yaxis.Add(axis2);
+            Yaxis.Add(axis3);
+            //series3.DependentRangeAxis = axis3;
+            //series4.DependentRangeAxis = axis3;
+            //series5.DependentRangeAxis = axis3;
+            //series6.DependentRangeAxis = axis2;
+            //timer.Interval = 1000;
+            //timer.Elapsed += Timer_Elapsed;
             Loaded += WPFChartView_Loaded;
         }
 
@@ -149,38 +143,38 @@ namespace SmartCaraTest.controls
         {
             switch (index)
             {
-                case 0:
-                    list1.Clear();
-                    list1 = list;
-                    break;
-                case 1:
-                    list2.Clear();
-                    list2 = list;
-                    break;
-                case 2:
-                    list3.Clear();
-                    list3 = list;
-                    break;
-                case 3:
-                    list4.Clear();
-                    list4 = list;
-                    break;
-                case 4:
-                    list5.Clear();
-                    list5 = list;
-                    break;
-                case 5:
-                    list6.Clear();
-                    list6 = list;
-                    break;
-                case 6:
-                    list7.Clear();
-                    list7 = list;
-                    break;
-                case 7:
-                    list8.Clear();
-                    list8 = list;
-                    break;
+                //    case 0:
+                //        list1.Clear();
+                //        list1 = list;
+                //        break;
+                //    case 1:
+                //        list2.Clear();
+                //        list2 = list;
+                //        break;
+                //    case 2:
+                //        list3.Clear();
+                //        list3 = list;
+                //        break;
+                //    case 3:
+                //        list4.Clear();
+                //        list4 = list;
+                //        break;
+                //    case 4:
+                //        list5.Clear();
+                //        list5 = list;
+                //        break;
+                //    case 5:
+                //        list6.Clear();
+                //        list6 = list;
+                //        break;
+                //    case 6:
+                //        list7.Clear();
+                //        list7 = list;
+                //        break;
+                //    case 7:
+                //        list8.Clear();
+                //        list8 = list;
+                //        break;
             }
         }
 
@@ -188,25 +182,28 @@ namespace SmartCaraTest.controls
         {
             InitializeComponent();
             chart.Background = Brushes.Transparent;
+
             LinearAxis axis = new LinearAxis();
+            Style verticalStyle = new Style(typeof(NumericAxisLabel));
+            verticalStyle.Setters.Add(new Setter(NumericAxisLabel.FontSizeProperty, 12.5));
             Style axisStyle = new Style(typeof(DateTimeAxisLabel));
+            axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.FontSizeProperty, 10.0));
             axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.StringFormatProperty, "{0: HH:mm}"));
-
-
+            //axisX.AxisLabelStyle = axisStyle;
             DateTimeAxis Time = new DateTimeAxis();
-            Time.AxisLabelStyle = axisStyle;
             Time.Interval = xInterval;
             Time.Orientation = AxisOrientation.X;
             Time.IntervalType = DateTimeIntervalType.Minutes;
             Time.Location = AxisLocation.Bottom;
             Time.Minimum = DateTime.Now;
             Time.Maximum = DateTime.Now.AddSeconds(14400);
+            Time.AxisLabelStyle = axisStyle;
             axis.Orientation = AxisOrientation.Y;
             axis.Foreground = Brushes.Red;
             axis.Minimum = 0;
-            axis.Maximum = 100;
+            axis.Maximum = 200;
             axis.Location = AxisLocation.Auto;
-            axis.Interval = yInterval;
+            axis.Interval = 20;
             series1.DependentRangeAxis = axis;
             series1.IndependentAxis = Time;
             series2.IndependentAxis = Time;
@@ -214,45 +211,56 @@ namespace SmartCaraTest.controls
             series4.IndependentAxis = Time;
             series5.IndependentAxis = Time;
             series6.IndependentAxis = Time;
-            setStyle(series1, Brushes.Aqua);
-            setStyle(series2, Brushes.Chocolate);
-            setStyle(series3, Brushes.OrangeRed);
-
+            series7.IndependentAxis = Time;
+            series8.IndependentAxis = Time;
+            setStyle(series1, Brushes.Green);
+            setStyle(series2, Brushes.Red);
+            setStyle(series3, Brushes.Blue);
             setStyle(series4, Brushes.Yellow);
-            setStyle(series5, Brushes.Gainsboro);
-            setStyle(series6, Brushes.BlueViolet);
+            setStyle(series5, Brushes.Brown);
+            setStyle(series6, Brushes.DarkOrchid);
+            setStyle(series7, Brushes.SpringGreen);
+            setStyle(series8, Brushes.Magenta);
 
 
             LinearAxis axis2 = new LinearAxis();
-            axis2.ShowGridLines = true;
+            axis2.ShowGridLines = false;
             axis2.Orientation = AxisOrientation.Y;
-            axis2.Minimum = 400;
+            axis2.Minimum = 0;
             axis2.Foreground = Brushes.Blue;
-            axis2.Maximum = 500;
+            axis2.Maximum = 100;
             axis2.Location = AxisLocation.Left;
-            axis2.Interval = yInterval;
+            axis2.Interval = 10;
             series2.DependentRangeAxis = axis2;
             LinearAxis axis3 = new LinearAxis();
             axis3.Orientation = AxisOrientation.Y;
-            axis3.Minimum = 200;
-            axis3.Maximum = 300;
+            axis3.Minimum = 0.0;
+            axis3.Maximum = 2.0;
             axis3.Foreground = Brushes.Green;
             axis3.Location = AxisLocation.Left;
-            axis3.Interval = yInterval;
+            axis3.Interval = 0.2;
 
-            series3.DependentRangeAxis = axis3;
-            series4.DependentRangeAxis = axis3;
-            series5.DependentRangeAxis = axis3;
-            series6.DependentRangeAxis = axis2;
-            series1.ItemsSource = list1;
-            series2.ItemsSource = list2;
-            series3.ItemsSource = list3;
-            series4.ItemsSource = list4;
-            series5.ItemsSource = list5;
-            series6.ItemsSource = list6;
-            timer.Interval = 1000;
-            timer.Elapsed += Timer_Elapsed;
+            axis.AxisLabelStyle = verticalStyle;
+            axis2.AxisLabelStyle = verticalStyle;
+            axis3.AxisLabelStyle = verticalStyle;
+            //series3.DependentRangeAxis = axis3;
+            //series4.DependentRangeAxis = axis3;
+            //series5.DependentRangeAxis = axis3;
+            //series6.DependentRangeAxis = axis2;
+            //timer.Interval = 1000;
+            //timer.Elapsed += Timer_Elapsed;
+            Yaxis.Add(axis);
+            Yaxis.Add(axis2);
+            Yaxis.Add(axis3);
             Loaded += WPFChartView_Loaded;
+            seriesList.Add(series1);
+            seriesList.Add(series2);
+            seriesList.Add(series3);
+            seriesList.Add(series4);
+            seriesList.Add(series5);
+            seriesList.Add(series6);
+            seriesList.Add(series7);
+            seriesList.Add(series8);
         }
 
         private void setStyle(LineSeries series, SolidColorBrush color)

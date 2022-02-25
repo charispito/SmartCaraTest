@@ -24,7 +24,9 @@ namespace SmartCaraTest.util
             try
             {
                 clientData.client.GetStream().BeginRead(clientData.readByteData, 0, clientData.readByteData.Length, new AsyncCallback(DataReceived), clientData);
-            }catch (Exception ex)
+                clientDic.TryAdd(clientData.TimeMills, clientData);
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }

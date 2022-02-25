@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartCaraTest.controls;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -9,6 +10,7 @@ namespace SmartCaraTest.util
 {
     public class ClientData
     {
+        public ChannelItem channel { get; set; }
         public int ResponseCount { get; set; }
         public bool Start { get; set; } = false;
         public DateTime StartTime { get; set; }
