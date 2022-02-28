@@ -3,6 +3,7 @@ using SmartCaraTest.data;
 using SmartCaraTest.util;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,9 +19,10 @@ namespace SmartCaraTest
     {
         private MultiWindow2 multiWindow2;
         private int count = 0;
+        public List<StreamWriter> files = new List<StreamWriter>();
         private Dictionary<int, int> seriesList = new Dictionary<int, int>();
         private AsyncServer server;
-        private Dictionary<int, int> channelList = new Dictionary<int, int>();
+        public Dictionary<int, int> channelList = new Dictionary<int, int>();
 
         public MultiWindow1()
         {
@@ -65,16 +67,9 @@ namespace SmartCaraTest
             };
         }
 
-        public void OnDataReceived(ClientData data)
+        private void initFile(StreamWriter file)
         {
-            byte[] packet = data.readCompleteData.ToArray();
-            data.ResponseCount++;
-            data.channel.NonResponse = 0;
-            data.readCompleteData.Clear();
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-
-            }));
+            file.WriteLine("날짜", "모드", "남은 시간", "히터 온도", "히터 오프타임", "배기온도", "FAN Speed", "열풍온도", "열풍온타임", "MOTOR", "모터 전류", "번호", "오프타임합", "오프평균", "배기 합", "배기 평균");
         }
 
         public void SetView(byte[] data, ChannelItem channel)

@@ -133,6 +133,7 @@ namespace SmartCaraTest
                 ChannelItem channel = window.GetChannelItem(index);
                 if(channel != null)
                 {
+                    window.channelList[data.clientNumber] = index;
                     channel.Channel = data.clientNumber;
                     data.channel = channel;
                     channel.client = data.client;
@@ -142,7 +143,7 @@ namespace SmartCaraTest
 
         private void OnDisconnected(ClientData data)
         {
-
+            
         }        
 
         private string byteToString(byte[] data)
@@ -165,6 +166,7 @@ namespace SmartCaraTest
             {
                 //Console.WriteLine("123123");
                 window.SetView(packet, data.channel);
+                Console.WriteLine(byteToString(packet));
             }));
         }
     }
