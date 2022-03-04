@@ -10,8 +10,12 @@ namespace SmartCaraTest.controls
 {
     public partial class ChannelItem : UserControl
     {
+        public bool ParameterMode = false;
         public bool Response = false;
         public int NonResponse { get; set; } = 0;
+        public bool run = false;
+        public int ItemIndex = 0;
+        public WPFChartView chartView { get; set; }
         public ObservableCollection<KeyValuePair<DateTime, int>> list1 = new ObservableCollection<KeyValuePair<DateTime, int>>();
         public ObservableCollection<KeyValuePair<DateTime, int>> list2 = new ObservableCollection<KeyValuePair<DateTime, int>>();
         public ObservableCollection<KeyValuePair<DateTime, int>> list3 = new ObservableCollection<KeyValuePair<DateTime, int>>();
@@ -19,9 +23,42 @@ namespace SmartCaraTest.controls
         public ObservableCollection<KeyValuePair<DateTime, int>> list5 = new ObservableCollection<KeyValuePair<DateTime, int>>();
         public ObservableCollection<KeyValuePair<DateTime, int>> list6 = new ObservableCollection<KeyValuePair<DateTime, int>>();
         public ObservableCollection<KeyValuePair<DateTime, int>> list7 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list8 = new ObservableCollection<KeyValuePair<DateTime, int>>();
+        public ObservableCollection<KeyValuePair<DateTime, double>> list8 = new ObservableCollection<KeyValuePair<DateTime, double>>();
         public TcpClient client { get; set; }
+        public long TimeMills { get; set; }
         private int _Channel;
+
+        public void clearData()
+        {
+            list1.Clear();
+            list2.Clear();
+            list3.Clear();
+            list4.Clear();
+            list5.Clear();
+            list6.Clear();
+            list7.Clear();
+            list8.Clear();
+            NonResponse = 0;
+            Item1.cont.Content = "";
+            Item2.cont.Content = "";
+            Item3.cont.Content = "";
+            Item4.cont.Content = "";
+            Item5.cont.Content = "";
+            Item6.cont.Content = "";
+            Item11.cont.Content = "";
+            Item12.cont.Content = "";
+            Item13.cont.Content = "";
+            Item14.cont.Content = "";
+            Item15.cont.Content = "";
+            Item16.cont.Content = "";
+            Item21.cont.Content = "";
+            Item22.cont.Content = "";
+            Item23.cont.Content = "";
+            Item24.cont.Content = "";
+            Item25.cont.Content = "";
+            Item26.cont.Content = "";
+            ChannelView.cont.Content = "";
+        }
 
         public int Channel {
             get { return _Channel; }
@@ -61,17 +98,27 @@ namespace SmartCaraTest.controls
             };
             StartButton.Click += StartButton_Click;
             StopButton.Click += StopButton_Click;
+            ParameterButton.Click += ParameterButton_Click;
             
+        }
+
+        private void ParameterButton_Click(object sender, RoutedEventArgs e)
+        {
+            ParameterMode = true;
+            ParameterWindow parameter = new ParameterWindow(this);
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
+            run = false;
+            chartView.ItemRun[ItemIndex] = false;
             byte[] command = Protocol.GetCommand(3);
             client.GetStream().Write(command, 0, command.Length);
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
+            
             byte[] command = Protocol.GetCommand(2);
             client.GetStream().Write(command, 0, command.Length);
             list1.Clear();
@@ -82,6 +129,12 @@ namespace SmartCaraTest.controls
             list6.Clear();
             list7.Clear();
             list8.Clear();
+            run = true;
+            if (chartView != null)
+            {
+                chartView.initXAxis();
+                chartView.ItemRun[ItemIndex] = true;
+            }
         }
 
         public void setHandler(RoutedEventHandler handler)

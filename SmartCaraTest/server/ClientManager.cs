@@ -44,64 +44,16 @@ namespace SmartCaraTest.util
                     return;
                 }
                 byte[] data = client.readByteData;
-                if (byteLength == 2 && data[0] == 0x0D && data[1] == 0x0A)
+                if(data.Length == 57)
                 {
-                    client.client.GetStream().BeginRead(client.readByteData, 0, client.readByteData.Length, new AsyncCallback(DataReceived), client);
-                    return;
+                    receiveStateData(client, byteLength, data);
                 }
-                else if (byteLength == 19 && data[0] == 02 && data[18] == 0x0A)
+                else if(data.Length == 70)
                 {
-                    string hex = "";
-                    for (int i = 0; i < byteLength; i++)
-                    {
-                        hex += " " + data[i].ToString("X2");
-                    }
-                    byte[] slice = data.Slice(byteLength - 2);
-                    string res = Encoding.UTF8.GetString(slice, 0, slice.Length);
-                    //Console.WriteLine($"hex : {hex}\nmessage : {res}");
-                }
-                else
-                {
-                    if (byteLength == 57)
-                    {
-                        if (client.readCompleteData == null)
-                            client.readCompleteData = new List<byte>();
-                        client.readCompleteData.Clear();
-                        byte[] arr = data.Slice(57);
-                        client.readCompleteData.AddRange(arr);
-                        OnReceived(client);
-                    }
-                    else
-                    {
-                        if (client.readCompleteData == null)
-                            client.readCompleteData = new List<byte>();
-                        byte[] arr = data.Slice(byteLength);
-                        client.readCompleteData.AddRange(arr);
-                        if (client.readCompleteData.Count == 57)
-                        {
-                            OnReceived(client);
-                        }
-                        else
-                        {
-                            if (client.readCompleteData.Count > 57)
-                            {
-                                if (client.readCompleteData[0] == 0xCC && client.readCompleteData[56] == 0xEF)
-                                {
-                                    byte[] arr2 = client.readCompleteData.ToArray().Slice(57);
-                                    client.readCompleteData.Clear();
-                                    client.readCompleteData.AddRange(arr2);
-                                    //Console.WriteLine($"Set From : {client.clientNumber} ReceiveCount : {client.ResponseCount}");
-                                    OnReceived(client);
-                                }
-                                else
-                                {
-                                    client.readCompleteData.Clear();
-                                }
-                            }
 
-                        }
-                    }
                 }
+                Console.WriteLine("Time: {0}, Length:{1}, Data: {2} \n", DateTime.Now, byteLength, byteToString(data));
+                
 
                 client.client.GetStream().BeginRead(client.readByteData, 0, client.readByteData.Length, new AsyncCallback(DataReceived), client);
 
@@ -113,6 +65,128 @@ namespace SmartCaraTest.util
             }
         }
 
+        private void receiveStateData(ClientData client, int byteLength, byte[] data)
+        {
+            if (byteLength == 2 && data[0] == 0x0D && data[1] == 0x0A)
+            {
+                client.client.GetStream().BeginRead(client.readByteData, 0, client.readByteData.Length, new AsyncCallback(DataReceived), client);
+                return;
+            }
+            else if (byteLength == 19 && data[0] == 02 && data[18] == 0x0A)
+            {
+                string hex = "";
+                for (int i = 0; i < byteLength; i++)
+                {
+                    hex += " " + data[i].ToString("X2");
+                }
+                byte[] slice = data.Slice(byteLength - 2);
+                string res = Encoding.UTF8.GetString(slice, 0, slice.Length);
+            }
+            else
+            {
+                if (byteLength == 57)
+                {
+                    if (client.readCompleteData == null)
+                        client.readCompleteData = new List<byte>();
+                    client.readCompleteData.Clear();
+                    byte[] arr = data.Slice(57);
+                    client.readCompleteData.AddRange(arr);
+                    OnReceived(client);
+                }
+                else
+                {
+                    if (client.readCompleteData == null)
+                        client.readCompleteData = new List<byte>();
+                    byte[] arr = data.Slice(byteLength);
+                    client.readCompleteData.AddRange(arr);
+                    if (client.readCompleteData.Count == 57)
+                    {
+                        OnReceived(client);
+                    }
+                    else
+                    {
+                        if (client.readCompleteData.Count > 57)
+                        {
+                            if (client.readCompleteData[0] == 0xCC && client.readCompleteData[56] == 0xEF)
+                            {
+                                byte[] arr2 = client.readCompleteData.ToArray().Slice(57);
+                                client.readCompleteData.Clear();
+                                client.readCompleteData.AddRange(arr2);
+                                //Console.WriteLine($"Set From : {client.clientNumber} ReceiveCount : {client.ResponseCount}");
+                                OnReceived(client);
+                            }
+                            else
+                            {
+                                client.readCompleteData.Clear();
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        private void receiveParameter(ClientData client, int byteLength, byte[] data)
+        {
+            if (byteLength == 2 && data[0] == 0x0D && data[1] == 0x0A)
+            {
+                client.client.GetStream().BeginRead(client.readByteData, 0, client.readByteData.Length, new AsyncCallback(DataReceived), client);
+                return;
+            }
+            else if (byteLength == 19 && data[0] == 02 && data[18] == 0x0A)
+            {
+                string hex = "";
+                for (int i = 0; i < byteLength; i++)
+                {
+                    hex += " " + data[i].ToString("X2");
+                }
+                byte[] slice = data.Slice(byteLength - 2);
+                string res = Encoding.UTF8.GetString(slice, 0, slice.Length);
+            }
+            else
+            {
+                if (byteLength == 70)
+                {
+                    if (client.readCompleteData == null)
+                        client.readCompleteData = new List<byte>();
+                    client.readCompleteData.Clear();
+                    byte[] arr = data.Slice(70);
+                    client.readCompleteData.AddRange(arr);
+                    OnReceived(client);
+                }
+                else
+                {
+                    if (client.readCompleteData == null)
+                        client.readCompleteData = new List<byte>();
+                    byte[] arr = data.Slice(byteLength);
+                    client.readCompleteData.AddRange(arr);
+                    if (client.readCompleteData.Count == 70)
+                    {
+                        OnReceived(client);
+                    }
+                    else
+                    {
+                        if (client.readCompleteData.Count > 70)
+                        {
+                            if (client.readCompleteData[0] == 0xCC && client.readCompleteData[69] == 0xEF)
+                            {
+                                byte[] arr2 = client.readCompleteData.ToArray().Slice(70);
+                                client.readCompleteData.Clear();
+                                client.readCompleteData.AddRange(arr2);
+                                //Console.WriteLine($"Set From : {client.clientNumber} ReceiveCount : {client.ResponseCount}");
+                                OnReceived(client);
+                            }
+                            else
+                            {
+                                client.readCompleteData.Clear();
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
         private void RemoveClient(ClientData targetClient)
         {
             ClientData client = null;
@@ -121,6 +195,16 @@ namespace SmartCaraTest.util
             {
                 OnDisconnected(targetClient);
             }
+        }
+
+        private string byteToString(byte[] data)
+        {
+            string hex = "";
+            foreach (byte b in data)
+            {
+                hex += " " + b.ToString("X2");
+            }
+            return hex;
         }
     }
 }

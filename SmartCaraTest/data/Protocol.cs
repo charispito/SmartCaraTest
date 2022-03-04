@@ -16,6 +16,68 @@ namespace SmartCaraTest.data
         public static byte END = 0x04;
         public static byte STATE = 0x00;
 
+        public static byte[] GetParameter(bool renewal)
+        {
+            byte[] command = new byte[7];
+            if (renewal)
+            {
+                command[0] = 0x12;
+                command[1] = 0x01;
+            }
+            else
+            {
+                command[0] = STX;
+                command[1] = 0x00;
+            }
+            
+            command[2] = 0x99;
+            command[3] = 0x07;
+            command[4] = 0x00;
+            command[5] = 0x00;
+            if (renewal)
+            {
+                command[5] = (byte)((command[1] ^ command[2] ^ command[3] ^ command[4]) ^ (0xFF));
+                command[6] = 0x34;
+            }
+            else
+            {
+                command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
+                command[6] = ETX;
+            }            
+            return command;
+        }
+
+        public static byte[] GetError(bool renewal)
+        {
+            byte[] command = new byte[7];
+            if (renewal)
+            {
+                command[0] = 0x12;
+                command[1] = 0x01;
+            }
+            else
+            {
+                command[0] = STX;
+                command[1] = 0x00;
+            }
+
+            command[2] = 0xB9;
+            command[3] = 0x07;
+            command[4] = 0x00;
+            command[5] = 0x00;
+            if (renewal)
+            {
+                command[5] = (byte)((command[1] ^ command[2] ^ command[3] ^ command[4]) ^ (0xFF));
+                command[6] = 0x34;
+            }
+            else
+            {
+                command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
+                command[6] = ETX;
+            }
+            return command;
+        }
+
         public static byte[] GetCommand(int kind)
         {
             byte[] command = new byte[7];

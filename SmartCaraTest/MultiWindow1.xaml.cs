@@ -2,6 +2,7 @@
 using SmartCaraTest.data;
 using SmartCaraTest.util;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace SmartCaraTest
         public List<StreamWriter> files = new List<StreamWriter>();
         private Dictionary<int, int> seriesList = new Dictionary<int, int>();
         private AsyncServer server;
-        public Dictionary<int, int> channelList = new Dictionary<int, int>();
+        public Dictionary<long, int> channelList = new Dictionary<long, int>();
 
         public MultiWindow1()
         {
@@ -32,6 +33,14 @@ namespace SmartCaraTest
             setItems(Item2);
             setItems(Item3);
             setItems(Item4);
+            Item1.ItemIndex = 1;
+            Item2.ItemIndex = 2;
+            Item3.ItemIndex = 3;
+            Item4.ItemIndex = 4;
+            Item1.chartView = Chart;
+            Item2.chartView = Chart;
+            Item3.chartView = Chart;
+            Item4.chartView = Chart;
             server = new AsyncServer(this);
             StartButton.Click += (s, e) =>
             {
@@ -67,6 +76,11 @@ namespace SmartCaraTest
             };
         }
 
+        public void GetParameter(int channel)
+        {
+
+        }
+
         private void initFile(StreamWriter file)
         {
             file.WriteLine("날짜", "모드", "남은 시간", "히터 온도", "히터 오프타임", "배기온도", "FAN Speed", "열풍온도", "열풍온타임", "MOTOR", "모터 전류", "번호", "오프타임합", "오프평균", "배기 합", "배기 평균");
@@ -80,24 +94,27 @@ namespace SmartCaraTest
                 return;
             if (data.Last() != 0xEF)
                 return;
+            int motorRun = data[5];
             int heateroff = data[7]; //히터 오프타임
             int heatertemp = data[6]; //히터 온도
             int airtemp = data[8]; //배기 온도
             int airaverage = data[9];
             int airheatertemp = data[10]; //열풍 온도
             int heaterduty = data[11];
-
+            int mode = data[15];
             int minute = data[16];
             int second = data[17];
 
             int t_hour = data[18];
             int t_min = data[19];
             int t_sec = data[20];
+            int runTime = data[21];
             string time = string.Format("{0:D2}:{1:D2}", minute, second);
-            string t_time = string.Format("{0:D2}:{1:D2}:{2:D2}",t_hour, t_min, t_sec);
+            string t_time = string.Format("{0:D2}:{1:D2}:{2:D2}", t_hour, t_min, t_sec);
             byte[] current = { 0, 0, data[13], data[14] };
             Array.Reverse(current);
             int currentInt = BitConverter.ToInt32(current, 0) * 10;
+            double currnetDouble = (double)currentInt / 1000.0;
             int year = data[51];
             int month = data[52];
             int day = data[53];
@@ -109,28 +126,118 @@ namespace SmartCaraTest
             int[] binary1 = Enumerable.Range(1, 8).Select(i => error1 / (1 << (8 - i)) % 2).ToArray();
             Array.Reverse(binary0);
             Array.Reverse(binary1);
+            //5 = 0101 RUN CCW
+            //9 = 1001 RUN STOP
+            //3 = 0011 RUN CW
+            //8 = 1000 STOP 
+            //2 = 0010 CW
+            //4 = 0100 CCW
             bool[] errors0 = new bool[8];
             bool[] errors1 = new bool[8];
-            channel.Item21.cont.Content = micom;
+            int motorRunTime = data[12];
+            channel.Item21.cont.Content = getModelName(data[48]);
+            channel.Item22.cont.Content = micom;
             channel.Item24.cont.Content = time;
-            channel.Item1.cont.Content = heatertemp;
-            channel.Item2.cont.Content = airtemp;
-            channel.Item3.cont.Content = airheatertemp;
+            channel.Item1.cont.Content = heatertemp + "ºC";
+            channel.Item2.cont.Content = airtemp + "ºC";
+            channel.Item3.cont.Content = airheatertemp + "ºC";
             channel.Item11.cont.Content = heateroff;
-            channel.Item12.cont.Content = airaverage;
+            channel.Item12.cont.Content = airaverage + "ºC";
             channel.Item13.cont.Content = heaterduty;
-            channel.Item14.cont.Content = currentInt;
+            channel.Item14.cont.Content = currnetDouble + "A";
             channel.Item6.cont.Content = t_time;
-            channel.list1.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heatertemp));
-            channel.list2.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airtemp));
-            channel.list3.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airheatertemp));
-            //channel.list3.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airheatertemp));
-            channel.list4.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heateroff));
-            channel.list5.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airaverage));
-            channel.list6.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heaterduty));
-            channel.list7.Add(new KeyValuePair<DateTime, int>(DateTime.Now, currentInt));
+            channel.Item4.Title = getMotorState(motorRun);
+            channel.Item4.cont.Content = motorRunTime.ToString() + "s";
+            channel.Item26.cont.Content = (mode + 1).ToString();
+            if (channel.run)
+            {
+                if (channel.Item1Check.IsChecked.Value)
+                {
+                    channel.list1.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heatertemp));
+                }
+                if (channel.Item2Check.IsChecked.Value)
+                {
+                    channel.list2.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airtemp));
+                }
+                if (channel.Item3Check.IsChecked.Value)
+                {
+                    channel.list3.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airheatertemp));
+                }
+                if (channel.Item4Check.IsChecked.Value)
+                {
+                    channel.list4.Add(new KeyValuePair<DateTime, int>(DateTime.Now, getMotorValue(motorRun)));
+                }
+                if (channel.Item5Check.IsChecked.Value)
+                {
+                    channel.list5.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heateroff));
+                }
+                if (channel.Item6Check.IsChecked.Value)
+                {
+                    channel.list6.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airaverage));
+                }
+                if (channel.Item7Check.IsChecked.Value)
+                {
+                    channel.list7.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heaterduty));
+                }
+                if (channel.Item8Check.IsChecked.Value)
+                {
+                    channel.list8.Add(new KeyValuePair<DateTime, double>(DateTime.Now, currnetDouble));
+                }
+            }            
         }
 
+        private string getModelName(int model)
+        {
+            switch (model)
+            {
+                case 1:
+                    return "PCS 500";
+                case 2:
+                    return "PCS 350";
+                default:
+                    return "";
+            }
+        }    
+
+        private int getMotorValue(int run)
+        {
+            switch (run)
+            {
+                case 2:
+                    return 75;
+                case 3:
+                    return 75;
+                case 5:
+                    return 25;
+                case 8:
+                    return 50;
+                case 9:
+                    return 50;
+                default:
+                    return 0;
+            }
+        }
+
+        private string getMotorState(int run)
+        {
+            switch (run)
+            {
+                case 2:
+                    return "CW";                    
+                case 3:
+                    return "CW";
+                case 4:
+                    return "CCW";
+                case 5:
+                    return "CCW";
+                case 8:
+                    return "STOP";
+                case 9:
+                    return "STOP";
+                default:
+                    return "";
+            }
+        }
         private void setItems(ChannelItem item)
         {
             item.Item1.label.Content = "히터 온도";
@@ -147,7 +254,7 @@ namespace SmartCaraTest
             item.Item15.label.Content = "열풍팬 풍량";
             item.Item16.label.Content = "만수 감지";
 
-            item.Item21.label.Content = "Version";
+            item.Item21.label.Content = "MODEL";
             item.Item22.label.Content = "Compile";
             item.Item23.label.Content = "상태";
             item.Item24.label.Content = "남은시간";
@@ -232,11 +339,11 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[10] = index;
-                            Chart.setLegend(index, "히터 온도");
+                            Chart.setLegend(index, "CH " + Item1.Channel + " 히터 온도");
                             Chart.seriesList[index].ItemsSource = Item1.list1;
                             try
                             {
-                                Chart.seriesList[index].DependentRangeAxis = Chart.Yaxis[0];
+                                Chart.setAxis(Chart.seriesList[index], 0);
                             }
                             catch (Exception ex)
                             {
@@ -251,6 +358,7 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item1.list1.Clear();
                         int index = seriesList[10];
                         seriesList.Remove(10);
                         Chart.setLegend(index, "");
@@ -264,9 +372,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[11] = index;
-                            Chart.setLegend(index, "배기 온도");
+                            Chart.setLegend(index, "CH " + Item1.Channel + " 배기 온도");
                             Chart.seriesList[index].ItemsSource = Item1.list2;
-                            Chart.seriesList[index].DependentRangeAxis = Chart.Yaxis[0];
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -276,6 +384,7 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item1.list2.Clear();
                         int index = seriesList[11];
                         seriesList.Remove(11);
                         Chart.setLegend(index, "");
@@ -289,9 +398,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[12] = index;
-                            Chart.setLegend(index, "열풍히터온도");
+                            Chart.setLegend(index, "CH " + Item1.Channel + " 열풍히터온도");
                             Chart.seriesList[index].ItemsSource = Item1.list3;
-                            Chart.seriesList[index].DependentRangeAxis = Chart.Yaxis[0];
+                            Chart.setAxis(Chart.seriesList[index], 0);
                         }
                         else
                         {
@@ -301,6 +410,7 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item1.list3.Clear();
                         int index = seriesList[12];
                         seriesList.Remove(12);
                         Chart.setLegend(index, "");
@@ -314,8 +424,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[13] = index;
-                            Chart.setLegend(index, "메인모터운전");
+                            Chart.setLegend(index, "CH " + Item1.Channel + " 메인모터운전");
                             Chart.seriesList[index].ItemsSource = Item1.list4;
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -325,6 +436,7 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item1.list4.Clear();
                         int index = seriesList[13];
                         seriesList.Remove(13);
                         Chart.setLegend(index, "");
@@ -338,9 +450,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[14] = index;
-                            Chart.setLegend(index, "히터오프타임");
+                            Chart.setLegend(index, "CH " + Item1.Channel + " 히터오프타임");
                             Chart.seriesList[index].ItemsSource = Item1.list5;
-                            Chart.seriesList[index].DependentRangeAxis = Chart.Yaxis[1];
+                            Chart.setAxis(Chart.seriesList[index], 2);
                         }
                         else
                         {
@@ -350,6 +462,7 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item1.list5.Clear();
                         int index = seriesList[14];
                         seriesList.Remove(14);
                         Chart.setLegend(index, "");
@@ -363,8 +476,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[15] = index;
-                            Chart.setLegend(index, "배기온도평균");
-                            Chart.seriesList[index].DependentRangeAxis = Chart.Yaxis[1];
+                            Chart.setLegend(index, "CH " + Item1.Channel + " 배기온도평균");
+                            Chart.seriesList[index].ItemsSource = Item1.list6;
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -374,9 +488,11 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item1.list6.Clear();
                         int index = seriesList[15];
                         seriesList.Remove(15);
                         Chart.setLegend(index, "");
+                        Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item7Check":
@@ -386,9 +502,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[16] = index;
-                            Chart.setLegend(index, "열풍히터Duty");
+                            Chart.setLegend(index, "CH " + Item1.Channel + " 열풍히터Duty");
                             Chart.seriesList[index].ItemsSource = Item1.list7;
-                            Chart.seriesList[index].DependentRangeAxis = Chart.Yaxis[1];
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -398,10 +514,11 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item1.list7.Clear();
                         int index = seriesList[16];
                         seriesList.Remove(16);
                         Chart.setLegend(index, "");
-                        Chart.seriesList[index].ItemsSource = null;
+                        Chart.seriesList[index].ItemsSource = null;                        
                     }
                     break;
                 case "Item8Check":
@@ -411,9 +528,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[17] = index;
-                            Chart.setLegend(index, "메인모터전류");
+                            Chart.setLegend(index, "CH " + Item1.Channel + " 메인모터전류");
                             Chart.seriesList[index].ItemsSource = Item1.list8;
-                            Chart.seriesList[index].DependentRangeAxis = Chart.Yaxis[0];
+                            Chart.setAxis(Chart.seriesList[index], 2);
                         }
                         else
                         {
@@ -423,6 +540,7 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item1.list8.Clear();
                         int index = seriesList[17];
                         seriesList.Remove(17);
                         Chart.setLegend(index, "");
@@ -442,7 +560,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[20] = index;
-                            Chart.setLegend(index, "히터 온도");
+                            Chart.setLegend(index, "CH " + Item2.Channel + " 히터 온도");
+                            Chart.seriesList[index].ItemsSource = Item2.list1;
+                            Chart.setAxis(Chart.seriesList[index], 0);
                         }
                         else
                         {
@@ -452,9 +572,11 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item2.list1.Clear();
                         int index = seriesList[20];
                         seriesList.Remove(20);
                         Chart.setLegend(index, "");
+                        Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item2Check":
@@ -464,7 +586,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[21] = index;
-                            Chart.setLegend(index, "배기 온도");
+                            Chart.setLegend(index, "CH " + Item2.Channel + " 배기 온도");
+                            Chart.seriesList[index].ItemsSource = Item2.list2;
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -474,9 +598,11 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item2.list2.Clear();
                         int index = seriesList[21];
                         seriesList.Remove(21);
                         Chart.setLegend(index, "");
+                        Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item3Check":
@@ -486,7 +612,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[22] = index;
-                            Chart.setLegend(index, "열풍히터온도");
+                            Chart.setLegend(index, "CH " + Item2.Channel + " 열풍히터온도");
+                            Chart.seriesList[index].ItemsSource = Item2.list3;
+                            Chart.setAxis(Chart.seriesList[index], 0);
                         }
                         else
                         {
@@ -496,9 +624,11 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item2.list3.Clear();
                         int index = seriesList[22];
                         seriesList.Remove(22);
                         Chart.setLegend(index, "");
+                        Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item4Check":
@@ -508,7 +638,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[23] = index;
-                            Chart.setLegend(index, "메인모터운전");
+                            Chart.setLegend(index, "CH " + Item2.Channel + " 메인모터운전");
+                            Chart.seriesList[index].ItemsSource = Item2.list4;
+                            Chart.setAxis(Chart.seriesList[index], 1);//
                         }
                         else
                         {
@@ -518,9 +650,11 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item2.list4.Clear();
                         int index = seriesList[23];
                         seriesList.Remove(23);
                         Chart.setLegend(index, "");
+                        Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item5Check":
@@ -530,7 +664,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[24] = index;
-                            Chart.setLegend(index, "히터오프타임");
+                            Chart.setLegend(index, "CH " + Item2.Channel + " 히터오프타임");
+                            Chart.seriesList[index].ItemsSource = Item2.list5;
+                            Chart.setAxis(Chart.seriesList[index], 2);
                         }
                         else
                         {
@@ -540,9 +676,11 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item2.list5.Clear();
                         int index = seriesList[24];
                         seriesList.Remove(24);
                         Chart.setLegend(index, "");
+                        Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item6Check":
@@ -552,7 +690,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[25] = index;
-                            Chart.setLegend(index, "배기온도평균");
+                            Chart.setLegend(index, "CH " + Item2.Channel + " 배기온도평균");
+                            Chart.seriesList[index].ItemsSource = Item2.list6;
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -562,9 +702,11 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item2.list6.Clear();
                         int index = seriesList[25];
                         seriesList.Remove(25);
                         Chart.setLegend(index, "");
+                        Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item7Check":
@@ -574,7 +716,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[26] = index;
-                            Chart.setLegend(index, "열풍히터Duty");
+                            Chart.setLegend(index, "CH " + Item2.Channel + " 열풍히터Duty");
+                            Chart.seriesList[index].ItemsSource = Item2.list7;
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -584,9 +728,11 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item2.list7.Clear();
                         int index = seriesList[26];
                         seriesList.Remove(26);
                         Chart.setLegend(index, "");
+                        Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item8Check":
@@ -596,7 +742,9 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[27] = index;
-                            Chart.setLegend(index, "메인모터전류");
+                            Chart.setLegend(index, "CH " + Item2.Channel + " 메인모터전류");
+                            Chart.seriesList[index].ItemsSource = Item2.list8;
+                            Chart.setAxis(Chart.seriesList[index], 2);
                         }
                         else
                         {
@@ -606,13 +754,16 @@ namespace SmartCaraTest
                     }
                     else
                     {
+                        Item2.list8.Clear();
                         int index = seriesList[27];
                         seriesList.Remove(27);
                         Chart.setLegend(index, "");
+                        Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
             }
         }
+
         public void Item3Check_Click(object sender, RoutedEventArgs e)
         {
             switch ((sender as Control).Name)
@@ -624,7 +775,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[30] = index;
-                            Chart.setLegend(index, "히터 온도");
+                            Chart.setLegend(index, "CH " + Item3.Channel + " 히터 온도");
                         }
                         else
                         {
@@ -646,7 +797,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[31] = index;
-                            Chart.setLegend(index, "배기 온도");
+                            Chart.setLegend(index, "CH " + Item3.Channel + " 배기 온도");
                         }
                         else
                         {
@@ -668,7 +819,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[32] = index;
-                            Chart.setLegend(index, "열풍히터온도");
+                            Chart.setLegend(index, "CH " + Item3.Channel + " 열풍히터온도");
                         }
                         else
                         {
@@ -690,7 +841,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[33] = index;
-                            Chart.setLegend(index, "메인모터운전");
+                            Chart.setLegend(index, "CH " + Item3.Channel + " 메인모터운전");
                         }
                         else
                         {
@@ -712,7 +863,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[34] = index;
-                            Chart.setLegend(index, "히터오프타임");
+                            Chart.setLegend(index, "CH " + Item3.Channel + " 히터오프타임");
                         }
                         else
                         {
@@ -734,7 +885,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[35] = index;
-                            Chart.setLegend(index, "배기온도평균");
+                            Chart.setLegend(index, "CH " + Item3.Channel + " 배기온도평균");
                         }
                         else
                         {
@@ -756,7 +907,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[36] = index;
-                            Chart.setLegend(index, "열풍히터Duty");
+                            Chart.setLegend(index, "CH " + Item3.Channel + " 열풍히터Duty");
                         }
                         else
                         {
@@ -778,7 +929,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[37] = index;
-                            Chart.setLegend(index, "메인모터전류");
+                            Chart.setLegend(index, "CH " + Item3.Channel + " 메인모터전류");
                         }
                         else
                         {
@@ -806,7 +957,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[40] = index;
-                            Chart.setLegend(index, "히터 온도");
+                            Chart.setLegend(index, "CH " + Item4.Channel + " 히터 온도");
                         }
                         else
                         {
@@ -828,7 +979,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[41] = index;
-                            Chart.setLegend(index, "배기 온도");
+                            Chart.setLegend(index, "CH " + Item4.Channel + " 배기 온도");
                         }
                         else
                         {
@@ -850,7 +1001,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[42] = index;
-                            Chart.setLegend(index, "열풍히터온도");
+                            Chart.setLegend(index, "CH " + Item4.Channel + " 열풍히터온도");
                         }
                         else
                         {
@@ -872,7 +1023,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[43] = index;
-                            Chart.setLegend(index, "메인모터운전");
+                            Chart.setLegend(index, "CH " + Item4.Channel + " 메인모터운전");
                         }
                         else
                         {
@@ -894,7 +1045,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[44] = index;
-                            Chart.setLegend(index, "히터오프타임");
+                            Chart.setLegend(index, "CH " + Item4.Channel + " 히터오프타임");
                         }
                         else
                         {
@@ -916,7 +1067,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[45] = index;
-                            Chart.setLegend(index, "배기온도평균");
+                            Chart.setLegend(index, "CH " + Item4.Channel + " 배기온도평균");
                         }
                         else
                         {
@@ -938,7 +1089,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[46] = index;
-                            Chart.setLegend(index, "열풍히터Duty");
+                            Chart.setLegend(index, "CH " + Item4.Channel + " 열풍히터Duty");
                         }
                         else
                         {
@@ -960,7 +1111,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[47] = index;
-                            Chart.setLegend(index, "메인모터전류");
+                            Chart.setLegend(index, "CH " + Item4.Channel + " 메인모터전류");
                         }
                         else
                         {

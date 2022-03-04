@@ -1,4 +1,5 @@
-﻿using SmartCaraTest.data;
+﻿using SmartCaraTest.controls;
+using SmartCaraTest.data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,9 +22,33 @@ namespace SmartCaraTest
     /// </summary>
     public partial class ParameterWindow : Window
     {
+        private ChannelItem channelItem = null;
+        private List<SettingData> error1 = new List<SettingData>();
+        private List<SettingData> error2 = new List<SettingData>();
+        private List<SettingData> error3 = new List<SettingData>();
+        private List<SettingData> error4 = new List<SettingData>();
+        private List<SettingData> error5 = new List<SettingData>();
+        private List<SettingData> mode1 = new List<SettingData>();
+        private List<SettingData> mode2 = new List<SettingData>();
+        private List<SettingData> mode3 = new List<SettingData>();
+        private List<SettingData> mode4 = new List<SettingData>();
+        private List<SettingData> mode5 = new List<SettingData>();
+
         public ParameterWindow()
         {
             InitializeComponent();
+            Initialize();
+        }
+
+        public ParameterWindow(ChannelItem channelItem)
+        {
+            InitializeComponent();
+            this.channelItem = channelItem;
+            Initialize();
+        }
+
+        private void Initialize()
+        {
             ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
             list.Add(new SettingData() { Name = "에러 내용" });
             list.Add(new SettingData() { Name = "운전 모드" });
@@ -53,8 +78,37 @@ namespace SmartCaraTest
             FanGrid2.ItemsSource = getFanData();
             HeaterGridSetting2.ItemsSource = getHeaterData2();
             ComplieGrid.ItemsSource = getCompileData(2022, 1, 1, 0);
+            Loaded += ParameterWindow_Loaded;
+            Closed += ParameterWindow_Closed;
         }
 
+        private void ParameterWindow_Closed(object sender, EventArgs e)
+        {
+            channelItem.ParameterMode = false;
+        }
+
+        private void ParameterWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            channelItem.ParameterMode = true;
+            byte[] command = Protocol.GetParameter(false);
+            channelItem.client.GetStream().Write(command, 0, command.Length);
+        }
+
+        public void setParameter(byte[] data)
+        {
+
+        }
+
+        public void setError(byte[] data)
+        {
+
+        }
+
+        public ParameterWindow(int channel)
+        {
+            InitializeComponent();
+            Initialize();
+        }
         private ObservableCollection<SettingData> getModeData()
         {
             ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();

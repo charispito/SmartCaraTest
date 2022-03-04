@@ -28,8 +28,10 @@ namespace SmartCaraTest.controls
         private DateTime dateX = DateTime.Now;
         private int yInterval = 20;
         private int xInterval = 10;
+        public Dictionary<int, bool> ItemRun = new Dictionary<int, bool>();
         public List<LineSeries> seriesList = new List<LineSeries>();
         public List<LinearAxis> Yaxis = new List<LinearAxis>();
+        private DateTimeAxis Time = new DateTimeAxis();
 
         public WPFChartView(int channel)
         {
@@ -40,18 +42,10 @@ namespace SmartCaraTest.controls
             LinearAxis axis = new LinearAxis();
             Style verticalStyle = new Style(typeof(NumericAxisLabel));
             verticalStyle.Setters.Add(new Setter(NumericAxisLabel.FontSizeProperty, 12.5));
-            Style axisStyle = new Style(typeof(DateTimeAxisLabel));
-            axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.FontSizeProperty, 10.0));
-            axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.StringFormatProperty, "{0: HH:mm}"));
-            //axisX.AxisLabelStyle = axisStyle;
-            DateTimeAxis Time = new DateTimeAxis();
-            Time.Interval = xInterval;
-            Time.Orientation = AxisOrientation.X;
-            Time.IntervalType = DateTimeIntervalType.Minutes;
-            Time.Location = AxisLocation.Bottom;
-            Time.Minimum = DateTime.Now;
-            Time.Maximum = DateTime.Now.AddSeconds(14400);
-            Time.AxisLabelStyle = axisStyle;
+            for(int i = 1; i < 5; i++)
+            {
+                ItemRun[i] = false;
+            }
             axis.Orientation = AxisOrientation.Y;
             axis.Foreground = Brushes.Red;
             axis.Minimum = 0;
@@ -59,23 +53,15 @@ namespace SmartCaraTest.controls
             axis.Location = AxisLocation.Auto;
             axis.Interval = 20;
             series1.DependentRangeAxis = axis;
-            series1.IndependentAxis = Time;
-            series2.IndependentAxis = Time;
-            series3.IndependentAxis = Time;
-            series4.IndependentAxis = Time;
-            series5.IndependentAxis = Time;
-            series6.IndependentAxis = Time;
-            series7.IndependentAxis = Time;
-            series8.IndependentAxis = Time;
+
             setStyle(series1, Brushes.Green);
             setStyle(series2, Brushes.Red);
             setStyle(series3, Brushes.Blue);
-            setStyle(series4, Brushes.Yellow);
+            setStyle(series4, Brushes.Magenta);
             setStyle(series5, Brushes.Brown);
             setStyle(series6, Brushes.DarkOrchid);
             setStyle(series7, Brushes.SpringGreen);
-            setStyle(series8, Brushes.Magenta);
-
+            setStyle(series8, Brushes.SteelBlue);
 
             LinearAxis axis2 = new LinearAxis();
             axis2.ShowGridLines = false;
@@ -90,7 +76,7 @@ namespace SmartCaraTest.controls
             axis3.Orientation = AxisOrientation.Y;
             axis3.Minimum = 0.0;
             axis3.Maximum = 2.0;
-            axis3.Foreground = Brushes.Green;
+            axis3.Foreground = Brushes.Magenta;
             axis3.Location = AxisLocation.Left;
             axis3.Interval = 0.2;
             
@@ -100,13 +86,11 @@ namespace SmartCaraTest.controls
             Yaxis.Add(axis);
             Yaxis.Add(axis2);
             Yaxis.Add(axis3);
-            //series3.DependentRangeAxis = axis3;
-            //series4.DependentRangeAxis = axis3;
-            //series5.DependentRangeAxis = axis3;
-            //series6.DependentRangeAxis = axis2;
-            //timer.Interval = 1000;
-            //timer.Elapsed += Timer_Elapsed;
-            Loaded += WPFChartView_Loaded;
+        }
+
+        public void setAxis(LineSeries series, int index)
+        {
+            series.DependentRangeAxis = Yaxis[index];
         }
 
         public void setLegend(int index, string label)
@@ -139,58 +123,21 @@ namespace SmartCaraTest.controls
                     break;
             }
         }
-        public void setChartData(ObservableCollection<KeyValuePair<DateTime, int>> list, int index)
+
+        public void initXAxis()
         {
-            switch (index)
+            bool run = false;
+            for(int i = 1; i < 5; i++)
             {
-                //    case 0:
-                //        list1.Clear();
-                //        list1 = list;
-                //        break;
-                //    case 1:
-                //        list2.Clear();
-                //        list2 = list;
-                //        break;
-                //    case 2:
-                //        list3.Clear();
-                //        list3 = list;
-                //        break;
-                //    case 3:
-                //        list4.Clear();
-                //        list4 = list;
-                //        break;
-                //    case 4:
-                //        list5.Clear();
-                //        list5 = list;
-                //        break;
-                //    case 5:
-                //        list6.Clear();
-                //        list6 = list;
-                //        break;
-                //    case 6:
-                //        list7.Clear();
-                //        list7 = list;
-                //        break;
-                //    case 7:
-                //        list8.Clear();
-                //        list8 = list;
-                //        break;
+                if(ItemRun[i])
+                    run = true;
             }
-        }
-
-        public WPFChartView()
-        {
-            InitializeComponent();
-            chart.Background = Brushes.Transparent;
-
-            LinearAxis axis = new LinearAxis();
-            Style verticalStyle = new Style(typeof(NumericAxisLabel));
-            verticalStyle.Setters.Add(new Setter(NumericAxisLabel.FontSizeProperty, 12.5));
+            if (run)
+                return;
+            Time = new DateTimeAxis();
             Style axisStyle = new Style(typeof(DateTimeAxisLabel));
             axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.FontSizeProperty, 10.0));
             axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.StringFormatProperty, "{0: HH:mm}"));
-            //axisX.AxisLabelStyle = axisStyle;
-            DateTimeAxis Time = new DateTimeAxis();
             Time.Interval = xInterval;
             Time.Orientation = AxisOrientation.X;
             Time.IntervalType = DateTimeIntervalType.Minutes;
@@ -198,13 +145,6 @@ namespace SmartCaraTest.controls
             Time.Minimum = DateTime.Now;
             Time.Maximum = DateTime.Now.AddSeconds(14400);
             Time.AxisLabelStyle = axisStyle;
-            axis.Orientation = AxisOrientation.Y;
-            axis.Foreground = Brushes.Red;
-            axis.Minimum = 0;
-            axis.Maximum = 200;
-            axis.Location = AxisLocation.Auto;
-            axis.Interval = 20;
-            series1.DependentRangeAxis = axis;
             series1.IndependentAxis = Time;
             series2.IndependentAxis = Time;
             series3.IndependentAxis = Time;
@@ -213,14 +153,35 @@ namespace SmartCaraTest.controls
             series6.IndependentAxis = Time;
             series7.IndependentAxis = Time;
             series8.IndependentAxis = Time;
+        }
+     
+        public WPFChartView()
+        {
+            InitializeComponent();
+            chart.Background = Brushes.Transparent;
+
+            LinearAxis axis = new LinearAxis();
+            Style verticalStyle = new Style(typeof(NumericAxisLabel));
+            verticalStyle.Setters.Add(new Setter(NumericAxisLabel.FontSizeProperty, 12.5));
+            for (int i = 1; i < 5; i++)
+            {
+                ItemRun[i] = false;
+            }
+            axis.Orientation = AxisOrientation.Y;
+            axis.Foreground = Brushes.Red;
+            axis.Minimum = 0;
+            axis.Maximum = 200;
+            axis.Location = AxisLocation.Auto;
+            axis.Interval = 20;
+            series1.DependentRangeAxis = axis;
             setStyle(series1, Brushes.Green);
             setStyle(series2, Brushes.Red);
             setStyle(series3, Brushes.Blue);
-            setStyle(series4, Brushes.Yellow);
+            setStyle(series4, Brushes.Magenta);
             setStyle(series5, Brushes.Brown);
             setStyle(series6, Brushes.DarkOrchid);
             setStyle(series7, Brushes.SpringGreen);
-            setStyle(series8, Brushes.Magenta);
+            setStyle(series8, Brushes.SteelBlue);
 
 
             LinearAxis axis2 = new LinearAxis();
@@ -243,16 +204,9 @@ namespace SmartCaraTest.controls
             axis.AxisLabelStyle = verticalStyle;
             axis2.AxisLabelStyle = verticalStyle;
             axis3.AxisLabelStyle = verticalStyle;
-            //series3.DependentRangeAxis = axis3;
-            //series4.DependentRangeAxis = axis3;
-            //series5.DependentRangeAxis = axis3;
-            //series6.DependentRangeAxis = axis2;
-            //timer.Interval = 1000;
-            //timer.Elapsed += Timer_Elapsed;
             Yaxis.Add(axis);
             Yaxis.Add(axis2);
             Yaxis.Add(axis3);
-            Loaded += WPFChartView_Loaded;
             seriesList.Add(series1);
             seriesList.Add(series2);
             seriesList.Add(series3);
@@ -267,30 +221,8 @@ namespace SmartCaraTest.controls
         {
             Style style = new Style(typeof(LineDataPoint));
             style.Setters.Add(new Setter(LineDataPoint.TemplateProperty, null));
-            //style.Setters.Add(new Setter(LineDataPoint.BorderBrushProperty, null));
             style.Setters.Add(new Setter(LineDataPoint.BackgroundProperty, color));
             series.DataPointStyle = style;
-        }
-
-        private void WPFChartView_Loaded(object sender, RoutedEventArgs e)
-        {
-            //timer.Start();
-        }
-
-        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                //list1.Add(new KeyValuePair<DateTime, int>(dateX, random.Next(10, 30)));
-                //list2.Add(new KeyValuePair<DateTime, int>(dateX, random.Next(440, 460)));
-                //list3.Add(new KeyValuePair<DateTime, int>(dateX, random.Next(270, 290)));
-
-                //list4.Add(new KeyValuePair<DateTime, int>(dateX, random.Next(220, 270)));
-                //list5.Add(new KeyValuePair<DateTime, int>(dateX, random.Next(250, 300)));
-                //list6.Add(new KeyValuePair<DateTime, int>(dateX, random.Next(400, 430)));
-                //dateX = dateX.AddSeconds(30);
-                //Console.WriteLine(dateX);
-            }));
         }
     }
 }

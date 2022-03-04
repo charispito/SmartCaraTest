@@ -54,18 +54,14 @@ namespace SmartCaraTest
         {
             while (run)
             {
-                foreach(var item in ClientManager.clientDic)
+                foreach (var item in ClientManager.clientDic)
                 {
+                    if (item.Value.channel.ParameterMode)
+                    {
+                        continue;
+                    }
                     try
                     {
-                        //if(item.Value.ResponseCount > 2 && !item.Value.Start)
-                        //{
-                        //    //item.Value.Start = true;
-                        //    byte[] sendByteData = Protocol.GetCommand(2);
-                        //    item.Value.client.GetStream().Write(sendByteData, 0, sendByteData.Length);
-                        //}
-                        //else
-                        //{
                         byte[] sendByteData = Protocol.GetCommand(1);
                         item.Value.client.GetStream().Write(sendByteData, 0, sendByteData.Length);
                         if (!item.Value.channel.Response)
@@ -119,7 +115,7 @@ namespace SmartCaraTest
             ClientData callbackClient = ar.AsyncState as ClientData;
             int bytesRead = callbackClient.client.GetStream().EndRead(ar);
             string readString = Encoding.Default.GetString(callbackClient.readByteData, 0, bytesRead);
-            Console.WriteLine("{0}번 사용자 : {1}", callbackClient.clientNumber, readString); 
+            Console.WriteLine("{0}번 사용자 : {1}", callbackClient.clientNumber, readString);
             callbackClient.client.GetStream().BeginRead(callbackClient.readByteData, 0, callbackClient.readByteData.Length, new AsyncCallback(DataReceived), callbackClient);
         }
 
@@ -128,23 +124,36 @@ namespace SmartCaraTest
             Console.WriteLine("connected");
             int index = window.GetChannelIndex();
             Console.WriteLine("Channel {0}", index);
-            if(index > -1)
+            if (index > -1)
             {
                 ChannelItem channel = window.GetChannelItem(index);
-                if(channel != null)
+                if (channel != null)
                 {
-                    window.channelList[data.clientNumber] = index;
+                    window.channelList[data.TimeMills] = index;
                     channel.Channel = data.clientNumber;
+                    channel.TimeMills = data.TimeMills;
                     data.channel = channel;
                     channel.client = data.client;
+                    window.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        channel.Item23.cont.Content = "Connected";
+                    }));
                 }
             }
         }
 
         private void OnDisconnected(ClientData data)
         {
-            
-        }        
+            int index = window.channelList[data.TimeMills];
+            ChannelItem channel = window.GetChannelItem(index);
+            window.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                channel.Item23.cont.Content = "Disconnected";
+                channel.clearData();
+            }));
+
+            window.channelList.Remove(data.TimeMills);
+        }
 
         private string byteToString(byte[] data)
         {
