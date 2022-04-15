@@ -24,6 +24,7 @@ namespace SmartCaraTest
         public TcpListener listener = null;
         public bool run = false;
         MultiWindow1 window;
+        ParameterWindow parameterWindow;
 
         public AsyncServer(MultiWindow1 window)
         {
@@ -48,7 +49,7 @@ namespace SmartCaraTest
             });
             CheckThread = new Thread(StateCheckLoop);
             CheckThread.Start();
-        }
+        }        
 
         private void StateCheckLoop()
         {
@@ -76,11 +77,16 @@ namespace SmartCaraTest
                                 //item.Value.channel
                             }
                         }
-                        //}
                     }
                     catch (Exception ex)
                     {
-
+                        Console.WriteLine(ex.ToString());
+                        ClientData client = null;
+                        bool remove = ClientManager.clientDic.TryRemove(item.Value.TimeMills, out client);
+                        if (remove)
+                        {
+                            OnDisconnected(item.Value);
+                        }
                     }
                 }
                 Thread.Sleep(1000);
@@ -166,16 +172,29 @@ namespace SmartCaraTest
         }
 
         private void OnDataReceived(ClientData data)
-        {
-            byte[] packet = data.readCompleteData.ToArray();
+        {            
             data.ResponseCount++;
             data.channel.NonResponse = 0;
-            data.readCompleteData.Clear();
+            
             window.Dispatcher.BeginInvoke(new Action(() =>
             {
-                //Console.WriteLine("123123");
-                window.SetView(packet, data.channel);
-                Console.WriteLine(byteToString(packet));
+                if (data.channel.ParameterMode && data.channel.ParameterWindow != null)
+                {
+                    if (data.readByteParameterData[2] == 0xB9)
+                    {
+                        data.channel.ParameterWindow.setError(data.readByteParameterData);
+                    }
+                    else if (data.readByteParameterData[2] == 0x99)
+                    {
+                        data.channel.ParameterWindow.setParameter(data.readByteParameterData);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("setview");
+                    window.SetView(data.readCompleteData.ToArray(), data.channel);
+                    data.readCompleteData.Clear();
+                }
             }));
         }
     }

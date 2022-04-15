@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartCaraTest.data;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,13 +17,18 @@ namespace SmartCaraTest.util
         public ConnectionHandler OnDisconnected;
         public delegate void DataReceiveHandler(ClientData client);
         public DataReceiveHandler OnReceived;
+        public bool parameter = false;
 
         public void AddClient(TcpClient newClient)
         {
+            Console.WriteLine("connected");
             ClientData clientData = new ClientData(newClient);
             OnConnected(clientData);
             try
             {
+                //clientData.client.GetStream().BeginRead(clientData.readByteData, 0, clientData.readByteData.Length, new AsyncCallback(DataReceived), clientData);
+                //clientData.client.GetStream().BeginRead(clientData.readByteData, 0, clientData.readByteData.Length, new AsyncCallback(ReceiveData), clientData);
+                //clientData.client.GetStream().Read(new byte[19], 0, 19);
                 clientData.client.GetStream().BeginRead(clientData.readByteData, 0, clientData.readByteData.Length, new AsyncCallback(DataReceived), clientData);
                 clientDic.TryAdd(clientData.TimeMills, clientData);
             }
@@ -30,7 +36,7 @@ namespace SmartCaraTest.util
             {
                 Console.WriteLine(ex.ToString());
             }
-        }
+        }        
 
         private void DataReceived(IAsyncResult ar)
         {
@@ -40,33 +46,88 @@ namespace SmartCaraTest.util
                 int byteLength = client.client.GetStream().EndRead(ar);
                 if (byteLength == 0)
                 {
-                    client.client.GetStream().BeginRead(client.readByteData, 0, client.readByteData.Length, new AsyncCallback(DataReceived), client);
+                    if (client.channel.ParameterMode)
+                    {
+                        client.client.GetStream().BeginRead(client.readByteParameterData, 0, client.readByteParameterData.Length, new AsyncCallback(DataReceived), client);
+                    }
+                    else
+                    {
+                        client.client.GetStream().BeginRead(client.readByteData, 0, client.readByteData.Length, new AsyncCallback(DataReceived), client);
+                    }
                     return;
                 }
-                byte[] data = client.readByteData;
-                if(data.Length == 57)
+                byte[] data = null;
+                if (client.channel.ParameterMode)
+                {
+                    data = client.readByteParameterData;
+                    client.readByteParameterDataCount += byteLength;
+                }
+                else
+                {
+                    data = client.readByteData;
+                    client.readByteDataCount += byteLength;
+                }
+                if(data.Length == 57 && data[0] == 0xCC && data[3] == 57 && data[56] == 0xEF)
                 {
                     receiveStateData(client, byteLength, data);
+                    Array.Clear(client.readByteData, 0, byteLength);
+                    client.client.GetStream().BeginRead(client.readByteData, 0, 57, new AsyncCallback(DataReceived), client);
                 }
-                else if(data.Length == 70)
+                else if(data.Length == 70 && data[0] == 0xCC && data[3] == 70 && data[69] == 0xEF)
                 {
-
+                    receiveParameter(client, byteLength, data);
+                    Array.Clear(client.readByteParameterData, 0, byteLength);
+                    client.client.GetStream().BeginRead(client.readByteParameterData, 0, 70, new AsyncCallback(DataReceived), client);
                 }
-                Console.WriteLine("Time: {0}, Length:{1}, Data: {2} \n", DateTime.Now, byteLength, byteToString(data));
+                else
+                {
+                    if (client.channel.ParameterMode)
+                    {
+                        receiveParameter(client, byteLength, data);
+                        Array.Clear(client.readByteParameterData, 0, byteLength);
+                        if(byteLength > 70)
+                        {
+                            Array.Clear(client.readByteParameterData, 0, 70);
+                            client.readByteParameterDataCount = 0;
+                            client.client.GetStream().BeginRead(client.readByteParameterData, 0, 70, new AsyncCallback(DataReceived), client);
+                        }
+                        else
+                        {
+                            client.client.GetStream().BeginRead(client.readByteParameterData, 0, 70 - client.readParameterData.Count, new AsyncCallback(DataReceived), client);
+                        }
+                    }
+                    else
+                    {
+
+                        receiveStateData(client, byteLength, data);
+                        Array.Clear(client.readByteData, 0, byteLength);
+                        if(byteLength > 57)
+                        {
+                            Array.Clear(client.readByteData, 0, 57);
+                            client.readByteDataCount = 0;
+                            client.client.GetStream().BeginRead(client.readByteData, 0, 57, new AsyncCallback(DataReceived), client);
+                        }
+                        else
+                        {
+                            client.client.GetStream().BeginRead(client.readByteData, 0, 57 - client.readCompleteData.Count, new AsyncCallback(DataReceived), client);
+                        }
+                    }
+                }
                 
-
-                client.client.GetStream().BeginRead(client.readByteData, 0, client.readByteData.Length, new AsyncCallback(DataReceived), client);
-
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+                Console.WriteLine("array length:{0} received: {1}", client.readByteParameterData.Length, client.readByteParameterDataCount);
+                Console.WriteLine("array length:{0} received: {1}", client.readByteData.Length, client.readByteDataCount);
                 RemoveClient(client);
             }
         }
 
         private void receiveStateData(ClientData client, int byteLength, byte[] data)
         {
+            byte[] arr = data.Slice(byteLength);
+            Console.WriteLine("State Time: {0}, Length:{1}, Data: {2} \n", DateTime.Now, byteLength, byteToString(arr));
             if (byteLength == 2 && data[0] == 0x0D && data[1] == 0x0A)
             {
                 client.client.GetStream().BeginRead(client.readByteData, 0, client.readByteData.Length, new AsyncCallback(DataReceived), client);
@@ -74,13 +135,13 @@ namespace SmartCaraTest.util
             }
             else if (byteLength == 19 && data[0] == 02 && data[18] == 0x0A)
             {
-                string hex = "";
-                for (int i = 0; i < byteLength; i++)
-                {
-                    hex += " " + data[i].ToString("X2");
-                }
-                byte[] slice = data.Slice(byteLength - 2);
-                string res = Encoding.UTF8.GetString(slice, 0, slice.Length);
+                //string hex = "";
+                //for (int i = 0; i < byteLength; i++)
+                //{
+                //    hex += " " + data[i].ToString("X2");
+                //}
+                //byte[] slice = data.Slice(byteLength - 2);
+                //string res = Encoding.UTF8.GetString(slice, 0, slice.Length);
             }
             else
             {
@@ -89,7 +150,8 @@ namespace SmartCaraTest.util
                     if (client.readCompleteData == null)
                         client.readCompleteData = new List<byte>();
                     client.readCompleteData.Clear();
-                    byte[] arr = data.Slice(57);
+                    
+                    //byte[] arr = data.Slice(57);
                     client.readCompleteData.AddRange(arr);
                     OnReceived(client);
                 }
@@ -97,7 +159,7 @@ namespace SmartCaraTest.util
                 {
                     if (client.readCompleteData == null)
                         client.readCompleteData = new List<byte>();
-                    byte[] arr = data.Slice(byteLength);
+                    //byte[] arr = data.Slice(byteLength);
                     client.readCompleteData.AddRange(arr);
                     if (client.readCompleteData.Count == 57)
                     {
@@ -112,7 +174,6 @@ namespace SmartCaraTest.util
                                 byte[] arr2 = client.readCompleteData.ToArray().Slice(57);
                                 client.readCompleteData.Clear();
                                 client.readCompleteData.AddRange(arr2);
-                                //Console.WriteLine($"Set From : {client.clientNumber} ReceiveCount : {client.ResponseCount}");
                                 OnReceived(client);
                             }
                             else
@@ -128,61 +189,79 @@ namespace SmartCaraTest.util
 
         private void receiveParameter(ClientData client, int byteLength, byte[] data)
         {
-            if (byteLength == 2 && data[0] == 0x0D && data[1] == 0x0A)
+            byte[] arr = data.Slice(byteLength);
+            Console.WriteLine("Parameter Time: {0}, Length:{1}, Data: {2} \n", DateTime.Now, byteLength, byteToString(arr));
+            if (byteLength == 70)
             {
-                client.client.GetStream().BeginRead(client.readByteData, 0, client.readByteData.Length, new AsyncCallback(DataReceived), client);
-                return;
-            }
-            else if (byteLength == 19 && data[0] == 02 && data[18] == 0x0A)
-            {
-                string hex = "";
-                for (int i = 0; i < byteLength; i++)
+                if (client.readParameterData == null)
+                    client.readParameterData = new List<byte>();
+                client.readParameterData.Clear();
+                //byte[] arr = data.Slice(70);
+
+                client.readParameterData.AddRange(arr);
+                if (arr[68] == Protocol.GetCheckSum(arr, 1, 67))
                 {
-                    hex += " " + data[i].ToString("X2");
-                }
-                byte[] slice = data.Slice(byteLength - 2);
-                string res = Encoding.UTF8.GetString(slice, 0, slice.Length);
-            }
-            else
-            {
-                if (byteLength == 70)
-                {
-                    if (client.readCompleteData == null)
-                        client.readCompleteData = new List<byte>();
-                    client.readCompleteData.Clear();
-                    byte[] arr = data.Slice(70);
-                    client.readCompleteData.AddRange(arr);
                     OnReceived(client);
                 }
                 else
                 {
-                    if (client.readCompleteData == null)
-                        client.readCompleteData = new List<byte>();
-                    byte[] arr = data.Slice(byteLength);
-                    client.readCompleteData.AddRange(arr);
-                    if (client.readCompleteData.Count == 70)
+                    Console.WriteLine("CheckSum Error Received: {0}, Calculated: {1}", arr[68], Protocol.GetCheckSum(arr, 1, 67));
+                    client.readParameterData.Clear();
+                }
+                //OnReceived(client);
+            }
+            else
+            {
+                if (client.readParameterData == null)
+                    client.readParameterData = new List<byte>();
+                //byte[] arr = data.Slice(byteLength);
+                client.readParameterData.AddRange(arr);
+                if (client.readParameterData.Count == 70)
+                {
+                    if (client.readParameterData[0] == 0xCC && client.readParameterData[3] == 70 && client.readParameterData[69] == 0xEF)
                     {
-                        OnReceived(client);
-                    }
-                    else
-                    {
-                        if (client.readCompleteData.Count > 70)
+                        byte[] arr2 = client.readParameterData.ToArray();
+                        if (arr2[68] == Protocol.GetCheckSum(arr2, 1, 67))
                         {
-                            if (client.readCompleteData[0] == 0xCC && client.readCompleteData[69] == 0xEF)
+                            OnReceived(client);
+                        }
+                        else
+                        {
+                            Console.WriteLine("CheckSum Error Received: {0}, Calculated: {1}", arr2[68], Protocol.GetCheckSum(arr2, 1, 67));
+                            client.readParameterData.Clear();
+                        }
+                        //OnReceived(client);
+                    }                        
+                }
+                else
+                {
+                    if (client.readParameterData.Count > 70)
+                    {
+                        if (client.readParameterData[0] == 0xCC && client.readParameterData[3] == 70 && client.readParameterData[69] == 0xEF)
+                        {
+                            byte[] arr2 = client.readParameterData.ToArray().Slice(70);
+                            client.readParameterData.Clear();
+                            client.readParameterData.AddRange(arr2);
+                            if(arr2[68] == Protocol.GetCheckSum(arr2,1, 67))
                             {
-                                byte[] arr2 = client.readCompleteData.ToArray().Slice(70);
-                                client.readCompleteData.Clear();
-                                client.readCompleteData.AddRange(arr2);
-                                //Console.WriteLine($"Set From : {client.clientNumber} ReceiveCount : {client.ResponseCount}");
                                 OnReceived(client);
                             }
                             else
                             {
-                                client.readCompleteData.Clear();
+                                Console.WriteLine("CheckSum Error Received: {0}, Calculated: {1}", arr2[68], Protocol.GetCheckSum(arr2, 1, 67));
+                                client.readParameterData.Clear();
                             }
+                            //Console.WriteLine($"Set From : {client.clientNumber} ReceiveCount : {client.ResponseCount}");
+                            
                         }
-
+                        else
+                        {
+                            Console.WriteLine("Protocol Error");
+                            Console.WriteLine("Parameter Time: {0}, Length:{1}, Data: {2} \n", DateTime.Now, byteLength, byteToString(client.readParameterData.ToArray()));
+                            client.readParameterData.Clear();
+                        }
                     }
+
                 }
             }
         }

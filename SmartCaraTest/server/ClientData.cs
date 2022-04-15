@@ -16,13 +16,18 @@ namespace SmartCaraTest.util
         public DateTime StartTime { get; set; }
         public TcpClient client { get; set; }
         public byte[] readByteData { get; set; }
+        public byte[] readByteParameterData { get; set; }
+        public int readByteDataCount { get; set; }
+        public int readByteParameterDataCount { get; set; }
         public int clientNumber { get; set; }
         public long TimeMills { get; set; }
         public List<byte> readCompleteData { get; set; }
+        public List<byte> readParameterData { get; set; }
         public ClientData(TcpClient client)
         {
             this.client = client;
             this.readByteData = new byte[57];
+            this.readByteParameterData = new byte[70];
             ResponseCount = 0;
             Start = false;
             string clientEndPoint = client.Client.RemoteEndPoint.ToString();
@@ -32,6 +37,7 @@ namespace SmartCaraTest.util
             TimeMills = DateTimeOffset.Now.Ticks + clientNumber;
             Console.WriteLine($"Connected [{clientNumber}]");
             readCompleteData = new List<byte>();
+            readParameterData = new List<byte>();
             StartTime = new DateTime();
         }
     }

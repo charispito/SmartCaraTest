@@ -39,8 +39,23 @@ namespace SmartCaraTest
             Loaded += OneChannelWindow_Loaded;
             port = new SerialPort();
             port.BaudRate = 115200;
+            port.DataReceived += Port_DataReceived;
             PortList.box.ItemsSource = SerialPort.GetPortNames();
             ConnectButton.Click += ConnectButton_Click;
+        }
+
+        private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            int Length = port.BytesToRead;
+            byte[] temp = new byte[Length];
+            port.Read(temp, 0, Length);
+            if(Length == 57)
+            {
+
+            }else if(Length == 70)
+            {
+
+            }
         }
 
         private void ConnectButton_Click(object sender, RoutedEventArgs e)

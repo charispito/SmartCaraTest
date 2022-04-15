@@ -13,6 +13,7 @@ namespace SmartCaraTest.controls
         public bool ParameterMode = false;
         public bool Response = false;
         public int NonResponse { get; set; } = 0;
+        public ParameterWindow ParameterWindow { get; set; }
         public bool run = false;
         public int ItemIndex = 0;
         public WPFChartView chartView { get; set; }
@@ -104,8 +105,12 @@ namespace SmartCaraTest.controls
 
         private void ParameterButton_Click(object sender, RoutedEventArgs e)
         {
+            int length = client.Client.ReceiveBufferSize;
+            byte[] buffer = new byte[length];
+            client.Client.Receive(buffer);
             ParameterMode = true;
-            ParameterWindow parameter = new ParameterWindow(this);
+            ParameterWindow = new ParameterWindow(this);
+            ParameterWindow.Show();
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)

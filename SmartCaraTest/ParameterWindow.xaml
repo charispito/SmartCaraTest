@@ -342,7 +342,7 @@
                     </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
-            <Button Grid.Row="1" Grid.RowSpan="6" Grid.Column="3" Margin="15, 0" Content=">>" FontSize="20" FontWeight="Black" Background="Transparent" BorderThickness="2"/>
+            <Button x:Name="RightButton" Grid.Row="1" Grid.RowSpan="6" Grid.Column="3" Margin="15, 0" Content=">>" FontSize="20" FontWeight="Black" Background="Transparent" BorderThickness="2"/>
             <Label FontSize="15" Content="Mode1" Grid.Column="4" FontWeight="Black"/>
             <Label FontSize="15" Grid.Column="5" Content="Mode2" FontWeight="Black"/>
             <Label FontSize="15" Grid.Column="6" Content="Mode3" FontWeight="Black"/>
@@ -504,7 +504,7 @@
                     </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
-            <Button Grid.Row="6" Height="30" Content="PARAMETER READ" FontSize="15" Background="Transparent" Foreground="Blue" BorderBrush="Blue"/>
+            <Button x:Name="ReadParamButton" Grid.Row="6" Height="30" Content="PARAMETER READ" FontSize="15" Background="Transparent" Foreground="Blue" BorderBrush="Blue"/>
             <DataGrid Margin="20,0,0,0" Style="{StaticResource GridStyle}" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" BorderThickness="2,2,0,0" Height="Auto" CanUserAddRows="False" HeadersVisibility="Column" HorizontalScrollBarVisibility="Disabled" AutoGenerateColumns="False" x:Name="HeaterGrid">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="{x:Type DataGridColumnHeader}">
@@ -591,7 +591,7 @@
                     </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
-            <Button Grid.Row="6" Grid.Column="4" Height="30" Content="PARAMETER WRITE" FontSize="15" Background="Transparent" Foreground="Red" BorderBrush="Red"/>
+            <Button x:Name="WriteParamButton" Grid.Row="6" Grid.Column="4" Height="30" Content="PARAMETER WRITE" FontSize="15" Background="Transparent" Foreground="Red" BorderBrush="Red"/>
             <DataGrid Margin="20,0,0,0" Style="{StaticResource GridStyle}" Grid.Row="5" Grid.Column="5" Grid.ColumnSpan="2" BorderThickness="2,2,0,0" Height="Auto" CanUserAddRows="False" HeadersVisibility="Column" HorizontalScrollBarVisibility="Disabled" AutoGenerateColumns="False" x:Name="HeaterGridSetting">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="{x:Type DataGridColumnHeader}">

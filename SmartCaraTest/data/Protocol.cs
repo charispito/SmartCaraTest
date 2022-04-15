@@ -103,5 +103,33 @@ namespace SmartCaraTest.data
             command[6] = ETX;
             return command;
         }
+
+        public static byte GetCheckSum(byte[] array, int start, int end)
+        {
+            int res = 0;
+            for (int i = start; i < end; i++)
+            {
+                if (i == start)
+                {
+                    res = array[i] ^ array[i + 1];
+                }
+                else
+                {
+                    res = res ^ array[i + 1];
+                }
+            }
+
+            return (byte)res;
+        }
+        public static byte GetNewCheckSum(byte[] array, int start, int end)
+        {
+            int res = 0;
+            for (int i = start; i < end; i++)
+            {
+                res = array[i] ^ array[i + 1];
+            }
+            res = res ^ 0xFF;
+            return (byte)res;
+        }
     }
 }

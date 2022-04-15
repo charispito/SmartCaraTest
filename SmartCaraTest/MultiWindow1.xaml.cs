@@ -88,12 +88,16 @@ namespace SmartCaraTest
 
         public void SetView(byte[] data, ChannelItem channel)
         {
-            if (data.Length != 57)
+            Console.WriteLine("set");
+            if (data.Length < 57)
+                return;
+            if (data[3] != 57)
                 return;
             if (data[0] != 0xCC)
                 return;
             if (data.Last() != 0xEF)
                 return;
+            Console.WriteLine("view");
             int motorRun = data[5];
             int heateroff = data[7]; //히터 오프타임
             int heatertemp = data[6]; //히터 온도
@@ -278,6 +282,8 @@ namespace SmartCaraTest
                     WindowState = WindowState.Maximized;
                 }));
             });
+            string now = DateTime.Now.ToString("yyyy_MM_dd_HH:mm:dd");
+            FileNameBox.Text = now;
         }
 
         private int getIndex()
