@@ -165,8 +165,8 @@
             <Label Grid.Row="1" Content="정상 운전" FontSize="15" Margin="0, 10" FontWeight="Black"/>
             <Label Grid.Row="2" BorderThickness="1" BorderBrush="Black" FontSize="17" Content="0" Margin="5, 0" HorizontalContentAlignment="Right"/>
             <Label Grid.Column="1" Grid.Row="2" Content="회" FontSize="17"/>
-            <Button Background="Transparent" BorderBrush="Blue" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="4" Height="30" Margin="5, 10" FontSize="17" Content="READ"/>
-            <Button Background="Transparent" BorderBrush="Red" Foreground="Red" Grid.ColumnSpan="2" Grid.Row="5" Height="30" Margin="5, 0" FontSize="17" Content="RESET"/>
+            <Button Background="Transparent" BorderBrush="Blue" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="4" Height="30" Margin="5, 10" FontSize="17" Content="READ" x:Name="ReadErrorButton"/>
+            <Button Background="Transparent" BorderBrush="Red" Foreground="Red" Grid.ColumnSpan="2" Grid.Row="5" Height="30" Margin="5, 0" FontSize="17" Content="RESET" x:Name="ResetErrorButton"/>
         </Grid>
         <Label Grid.Row="1" Grid.Column="5" Content="파일" FontSize="18" FontWeight="SemiBold"/>
         <TextBox Grid.Row="2" Grid.Column="5" Margin="0,5" FontSize="14" BorderBrush="Black"/>

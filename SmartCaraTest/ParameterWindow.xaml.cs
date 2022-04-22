@@ -3,6 +3,7 @@ using SmartCaraTest.data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,8 @@ namespace SmartCaraTest
     public partial class ParameterWindow : Window
     {
         private ChannelItem channelItem = null;
+        private SerialPort port = null;
+        private OneChannelValueDetail oneChannel;
         private List<SettingData> mode1 = new List<SettingData>();
         private List<SettingData> mode2 = new List<SettingData>();
         private List<SettingData> mode3 = new List<SettingData>();
@@ -37,6 +40,15 @@ namespace SmartCaraTest
         private List<SettingData> mode15 = new List<SettingData>();
         private List<SettingData> motor1 = new List<SettingData>();
 
+        public ParameterWindow(SerialPort port, OneChannelValueDetail detail)
+        {
+            InitializeComponent();
+            this.port = port;
+            oneChannel = detail;
+            Initialize2();
+            
+        }
+
         public ParameterWindow()
         {
             InitializeComponent();
@@ -48,6 +60,62 @@ namespace SmartCaraTest
             InitializeComponent();
             this.channelItem = channelItem;
             Initialize();
+        }
+
+        private void Initialize2()
+        {
+            ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
+            list.Add(new SettingData() { Name = "에러 내용" });
+            list.Add(new SettingData() { Name = "운전 모드" });
+            list.Add(new SettingData() { Name = "히터 온도" });
+            list.Add(new SettingData() { Name = "히터 오프 타임" });
+            list.Add(new SettingData() { Name = "배기 온도" });
+            list.Add(new SettingData() { Name = "열풍 온도" });
+            list.Add(new SettingData() { Name = "열풍 On Time" });
+            list.Add(new SettingData() { Name = "운전 횟수" });
+            ErrorGrid.ItemsSource = list;
+            MicomGrid.ItemsSource = getModeData();
+            MicomGrid2.ItemsSource = getModeData();
+            MicomGrid3.ItemsSource = getModeData();
+            MicomGrid4.ItemsSource = getModeData();
+            MicomGrid5.ItemsSource = getModeData();
+            MotorGrid.ItemsSource = getMotorData();
+            SetGrid1.ItemsSource = getModeData();
+            SetGrid2.ItemsSource = getModeData();
+            SetGrid3.ItemsSource = getModeData();
+            SetGrid4.ItemsSource = getModeData();
+            SetGrid5.ItemsSource = getModeData();
+            SetGrid6.ItemsSource = getMotorData();
+            HeaterGrid.ItemsSource = getHeaterData();
+            FanGrid.ItemsSource = getFanData();
+            HeaterGrid2.ItemsSource = getHeaterData2();
+            HeaterGridSetting.ItemsSource = getHeaterData();
+            FanGrid2.ItemsSource = getFanData();
+            HeaterGridSetting2.ItemsSource = getHeaterData2();
+            ComplieGrid.ItemsSource = getCompileData(2022, 1, 1, 0);
+            Loaded += ParameterWindow_Loaded1;
+            Closed += ParameterWindow_Closed1; ;
+            RightButton.Click += RightButton_Click;
+            ReadParamButton.Click += ReadParamButton_Click;
+            ReadErrorButton.Click += (s, e) => {
+                byte[] command = Protocol.GetError(false);
+                port.Write(command, 0, command.Length);
+            };
+            ResetErrorButton.Click += (s, e) => { };
+
+        }
+
+        private void ParameterWindow_Closed1(object sender, EventArgs e)
+        {
+            oneChannel.ParameterMode = false;
+
+        }
+
+        private void ParameterWindow_Loaded1(object sender, RoutedEventArgs e)
+        {
+            oneChannel.ParameterMode = true;
+            byte[] command = Protocol.GetParameter(false);
+            port.Write(command, 0, command.Length);
         }
 
         private void Initialize()
@@ -90,8 +158,15 @@ namespace SmartCaraTest
         private void ReadParamButton_Click(object sender, RoutedEventArgs e)
         {
             byte[] command = Protocol.GetParameter(false);
-            channelItem.client.GetStream().Write(command, 0, command.Length);
-            channelItem.client.GetStream().Flush();
+            if(port != null)
+            {
+                port.Write(command, 0, command.Length);
+            }
+            else
+            {
+                channelItem.client.GetStream().Write(command, 0, command.Length);
+                channelItem.client.GetStream().Flush();
+            }
 
         }
 
@@ -103,6 +178,17 @@ namespace SmartCaraTest
             mode14.Clear();
             mode15.Clear();
             motor1.Clear();
+            mode11.AddRange(mode1);
+            mode12.AddRange(mode2);
+            mode13.AddRange(mode3);
+            mode14.AddRange(mode4);
+            mode15.AddRange(mode5);
+            motor1.AddRange(motor);
+            SetGrid1.ItemsSource = mode11;
+            SetGrid2.ItemsSource = mode12;
+            SetGrid3.ItemsSource = mode13;
+            SetGrid4.ItemsSource = mode14;
+            SetGrid5.ItemsSource = mode15;
         }
 
         private void ParameterWindow_Closed(object sender, EventArgs e)
@@ -246,34 +332,43 @@ namespace SmartCaraTest
             int exhaustTemp0 = data[9];
             int hotWindTemp0 = data[10];
             int hotWindOnTime0 = data[11];
+            // CC 00 B9 46
+            // 00 00 00 00 00 00 00 00 00 00 error0
+            // 00 40 01 17 03 19 00 00 00 00 error1
+            // 80 00 00 22 53 23 00 00 00 01 error2
+            // 00 02 01 80 49 2A 00 00 00 01 error3
+            // 00 02 01 7C 4A 2E 00 00 00 01 error4
+            // 00 00 00 00 00 00 00 00 00 00 error5
+            // 00 00 00 02 99 EF
+            Console.WriteLine("{0} {1} {2}", runmode0, heaterTemp0, heaterofftime0);
 
-            int runmode1 = data[6];
-            int heaterTemp1 = data[7];
-            int heaterofftime1 = data[8];
-            int exhaustTemp1 = data[9];
-            int hotWindTemp1 = data[10];
-            int hotWindOnTime1 = data[11];
+            int runmode1 = data[16];
+            int heaterTemp1 = data[17];
+            int heaterofftime1 = data[18];
+            int exhaustTemp1 = data[19];
+            int hotWindTemp1 = data[20];
+            int hotWindOnTime1 = data[21];
 
-            int runmode2 = data[6];
-            int heaterTemp2 = data[7];
-            int heaterofftime2 = data[8];
-            int exhaustTemp2 = data[9];
-            int hotWindTemp2 = data[10];
-            int hotWindOnTime2 = data[11];
+            int runmode2 = data[26];
+            int heaterTemp2 = data[27];
+            int heaterofftime2 = data[28];
+            int exhaustTemp2 = data[29];
+            int hotWindTemp2 = data[30];
+            int hotWindOnTime2 = data[31];
 
-            int runmode3 = data[6];
-            int heaterTemp3 = data[7];
-            int heaterofftime3 = data[8];
-            int exhaustTemp3 = data[9];
-            int hotWindTemp3 = data[10];
-            int hotWindOnTime3 = data[11];
+            int runmode3 = data[36];
+            int heaterTemp3 = data[37];
+            int heaterofftime3 = data[38];
+            int exhaustTemp3 = data[39];
+            int hotWindTemp3 = data[40];
+            int hotWindOnTime3 = data[41];
 
-            int runmode4 = data[6];
-            int heaterTemp4 = data[7];
-            int heaterofftime4 = data[8];
-            int exhaustTemp4 = data[9];
-            int hotWindTemp4 = data[10];
-            int hotWindOnTime4 = data[11];
+            int runmode4 = data[46];
+            int heaterTemp4 = data[47];
+            int heaterofftime4 = data[48];
+            int exhaustTemp4 = data[49];
+            int hotWindTemp4 = data[50];
+            int hotWindOnTime4 = data[51];
 
             ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
             list.Add(new SettingData() { Name = "에러 내용"});

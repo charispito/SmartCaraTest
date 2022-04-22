@@ -36,7 +36,7 @@ namespace SmartCaraTest.data
             command[5] = 0x00;
             if (renewal)
             {
-                command[5] = (byte)((command[1] ^ command[2] ^ command[3] ^ command[4]) ^ (0xFF));
+                command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
                 command[6] = 0x34;
             }
             else
@@ -67,7 +67,7 @@ namespace SmartCaraTest.data
             command[5] = 0x00;
             if (renewal)
             {
-                command[5] = (byte)((command[1] ^ command[2] ^ command[3] ^ command[4]) ^ (0xFF));
+                command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
                 command[6] = 0x34;
             }
             else
@@ -77,6 +77,7 @@ namespace SmartCaraTest.data
             }
             return command;
         }
+
 
         public static byte[] GetCommand(int kind)
         {
@@ -103,6 +104,41 @@ namespace SmartCaraTest.data
             command[6] = ETX;
             return command;
         }
+
+        public static byte[] GetNewCommand(int kind)
+        {
+            byte[] command = new byte[7];
+            command[0] = 0x12;
+            command[1] = 0x01;
+            command[3] = 0x07;
+            switch (kind)
+            {
+                case 1: //state
+                    command[2] = STATUS;
+                    command[4] = 0x00;
+                    break;
+                case 2: //start
+                    command[2] = CONTROL;
+                    command[4] = START;
+                    break;
+                case 3: //end
+                    command[2] = CONTROL;
+                    command[4] = END;
+                    break;
+            }
+            command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
+            command[6] = 0x34;
+            return command;
+        }
+
+
+        //12 01 AA 39 01 08 14 53 16 16
+        //00 00 00 00 00 07 00 00 00 00
+        //00 00 00 00 00 00 87 00 00 28
+        //00 14 09 05 0B 14 5F 28 00 00
+        //00 00 00 00 00 00 00 00 00 80
+        //04 16 04 14 00 86 34
+
 
         public static byte GetCheckSum(byte[] array, int start, int end)
         {
