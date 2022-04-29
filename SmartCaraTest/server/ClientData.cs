@@ -23,6 +23,7 @@ namespace SmartCaraTest.util
         public long TimeMills { get; set; }
         public List<byte> readCompleteData { get; set; }
         public List<byte> readParameterData { get; set; }
+        public bool Run = true;
         public ClientData(TcpClient client)
         {
             this.client = client;

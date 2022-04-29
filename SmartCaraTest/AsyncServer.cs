@@ -47,9 +47,11 @@ namespace SmartCaraTest
             {
                 AsycnServerStart();
             });
-            CheckThread = new Thread(StateCheckLoop);
-            CheckThread.Start();
+            //CheckThread = new Thread(StateCheckLoop);
+            //CheckThread.Start();
         }        
+
+        
 
         private void StateCheckLoop()
         {
@@ -152,7 +154,7 @@ namespace SmartCaraTest
         {
             int index = window.channelList[data.TimeMills];
             ChannelItem channel = window.GetChannelItem(index);
-            window.Dispatcher.BeginInvoke(new Action(() =>
+            data.channel.Dispatcher.BeginInvoke(new Action(() =>
             {
                 channel.Item23.cont.Content = "Disconnected";
                 channel.clearData();

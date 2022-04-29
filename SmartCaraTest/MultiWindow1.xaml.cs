@@ -61,7 +61,15 @@ namespace SmartCaraTest
                         {
                             if (item.Value.client != null && item.Value.client.Connected)
                             {
-                                byte[] cmd = Protocol.GetCommand(3);
+                                byte[] cmd = null;
+                                if (item.Value.channel.IsNewVersion)
+                                {
+                                    cmd = Protocol.GetNewCommand(3);
+                                }
+                                else
+                                {
+                                    cmd = Protocol.GetCommand(3);
+                                }
                                 item.Value.client.GetStream().Write(cmd, 0, cmd.Length);
                                 item.Value.client.Close();
                             }
@@ -93,10 +101,20 @@ namespace SmartCaraTest
                 return;
             if (data[3] != 57)
                 return;
-            if (data[0] != 0xCC)
-                return;
-            if (data.Last() != 0xEF)
-                return;
+            if (channel.IsNewVersion)
+            {
+                if (data[0] != 0x12)
+                    return;
+                if (data.Last() != 0x34)
+                    return;
+            }
+            else
+            {
+                if (data[0] != 0xCC)
+                    return;
+                if (data.Last() != 0xEF)
+                    return;
+            }
             Console.WriteLine("view");
             int motorRun = data[5];
             int heateroff = data[7]; //히터 오프타임
@@ -272,9 +290,9 @@ namespace SmartCaraTest
             Item2.setHandler(Item2Check_Click);
             Item3.setHandler(Item3Check_Click);
             Item4.setHandler(Item4Check_Click);
-            //multiWindow2 = new MultiWindow2();
-            //multiWindow2.Owner = this;
-            //multiWindow2.Show();
+            multiWindow2 = new MultiWindow2();
+            multiWindow2.Owner = this;
+            multiWindow2.Show();
             Task.Delay(100).ContinueWith(task =>
             {
                 Dispatcher.BeginInvoke(new Action(() =>

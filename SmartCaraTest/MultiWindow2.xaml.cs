@@ -26,6 +26,18 @@ namespace SmartCaraTest
         {
             InitializeComponent();
             Loaded += MultiWindow_Loaded;
+            setItems(Item1);
+            setItems(Item2);
+            setItems(Item3);
+            setItems(Item4);
+            Item1.ItemIndex = 1;
+            Item2.ItemIndex = 2;
+            Item3.ItemIndex = 3;
+            Item4.ItemIndex = 4;
+            Item1.chartView = Chart;
+            Item2.chartView = Chart;
+            Item3.chartView = Chart;
+            Item4.chartView = Chart;
         }
 
         private int getIndex()

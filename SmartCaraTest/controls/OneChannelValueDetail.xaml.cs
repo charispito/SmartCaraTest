@@ -152,8 +152,17 @@ namespace SmartCaraTest.controls
             string file = DateTime.Now.ToString("싱글yyyy년MM월dd일_HH시mm분ss초") + ".csv";
             streamWriter = new StreamWriter(new FileStream(Path.Combine(path, file), FileMode.CreateNew), System.Text.Encoding.Default);
             initFile();
-            byte[] command = Protocol.GetCommand(2);
-            port.Write(command, 0, command.Length);
+            if (IsNewVersion)
+            {
+                byte[] command = Protocol.GetNewCommand(2);
+                port.Write(command, 0, command.Length);
+            }
+            else
+            {
+                byte[] command = Protocol.GetCommand(2);
+                port.Write(command, 0, command.Length);
+            }
+            
             list1.Clear();
             list2.Clear();
             list3.Clear();
@@ -178,11 +187,20 @@ namespace SmartCaraTest.controls
                 MessageBox.Show("연결 되지 않았습니다.");
                 return;
             }
+            if (streamWriter != null)
             streamWriter.Close();
             run = false;
             chartView.ItemRun[0] = false;
-            byte[] command = Protocol.GetCommand(3);
-            port.Write(command, 0, command.Length);
+            if (IsNewVersion)
+            {
+                byte[] command = Protocol.GetNewCommand(3);
+                port.Write(command, 0, command.Length);
+            }
+            else
+            {
+                byte[] command = Protocol.GetCommand(3);
+                port.Write(command, 0, command.Length);
+            }
             //client.GetStream().Write(command, 0, command.Length);
         }
     }

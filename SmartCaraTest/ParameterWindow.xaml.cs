@@ -1,5 +1,6 @@
 ﻿using SmartCaraTest.controls;
 using SmartCaraTest.data;
+using SmartCaraTest.util;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,9 +24,10 @@ namespace SmartCaraTest
     /// </summary>
     public partial class ParameterWindow : Window
     {
-        private ChannelItem channelItem = null;
         private SerialPort port = null;
+        private bool Errorset = false;
         private OneChannelValueDetail oneChannel;
+        private bool RightSet = false;
         private List<SettingData> mode1 = new List<SettingData>();
         private List<SettingData> mode2 = new List<SettingData>();
         private List<SettingData> mode3 = new List<SettingData>();
@@ -40,6 +42,10 @@ namespace SmartCaraTest
         private List<SettingData> mode15 = new List<SettingData>();
         private List<SettingData> motor1 = new List<SettingData>();
 
+        private List<SettingData> fan = new List<SettingData>();
+        private List<SettingData> fan1 = new List<SettingData>();
+        private List<byte> receivedData = new List<byte>();
+
         public ParameterWindow(SerialPort port, OneChannelValueDetail detail)
         {
             InitializeComponent();
@@ -52,15 +58,9 @@ namespace SmartCaraTest
         public ParameterWindow()
         {
             InitializeComponent();
-            Initialize();
-        }
+            //Initialize();
+        }       
 
-        public ParameterWindow(ChannelItem channelItem)
-        {
-            InitializeComponent();
-            this.channelItem = channelItem;
-            Initialize();
-        }
 
         private void Initialize2()
         {
@@ -101,8 +101,21 @@ namespace SmartCaraTest
                 byte[] command = Protocol.GetError(false);
                 port.Write(command, 0, command.Length);
             };
-            ResetErrorButton.Click += (s, e) => { };
+            WriteParamButton.Click += WriteParamButton_Click;
+            ResetErrorButton.Click += ResetErrorButton_Click;
 
+        }
+
+        private void WriteParamButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!RightSet)
+            {
+                MessageBox.Show("값이 설정 되지 않았습니다.");
+                return;
+            }
+            byte[] command = GetParameterSettingData();
+            port.Write(command, 0, command.Length);
+            //PrintCommand(GetParameterSettingData());
         }
 
         private void ParameterWindow_Closed1(object sender, EventArgs e)
@@ -114,94 +127,94 @@ namespace SmartCaraTest
         private void ParameterWindow_Loaded1(object sender, RoutedEventArgs e)
         {
             oneChannel.ParameterMode = true;
-            byte[] command = Protocol.GetParameter(false);
-            port.Write(command, 0, command.Length);
-        }
-
-        private void Initialize()
-        {
-            ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
-            list.Add(new SettingData() { Name = "에러 내용" });
-            list.Add(new SettingData() { Name = "운전 모드" });
-            list.Add(new SettingData() { Name = "히터 온도" });
-            list.Add(new SettingData() { Name = "히터 오프 타임" });
-            list.Add(new SettingData() { Name = "배기 온도" });
-            list.Add(new SettingData() { Name = "열풍 온도" });
-            list.Add(new SettingData() { Name = "열풍 On Time" });
-            list.Add(new SettingData() { Name = "운전 횟수" });
-            ErrorGrid.ItemsSource = list;
-            MicomGrid.ItemsSource = getModeData();
-            MicomGrid2.ItemsSource = getModeData();
-            MicomGrid3.ItemsSource = getModeData();
-            MicomGrid4.ItemsSource = getModeData();
-            MicomGrid5.ItemsSource = getModeData();
-            MotorGrid.ItemsSource = getMotorData();
-            SetGrid1.ItemsSource = getModeData();
-            SetGrid2.ItemsSource = getModeData();
-            SetGrid3.ItemsSource = getModeData();
-            SetGrid4.ItemsSource = getModeData();
-            SetGrid5.ItemsSource = getModeData();
-            SetGrid6.ItemsSource = getMotorData();
-            HeaterGrid.ItemsSource = getHeaterData();
-            FanGrid.ItemsSource = getFanData();
-            HeaterGrid2.ItemsSource = getHeaterData2();
-            HeaterGridSetting.ItemsSource = getHeaterData();
-            FanGrid2.ItemsSource = getFanData();
-            HeaterGridSetting2.ItemsSource = getHeaterData2();
-            ComplieGrid.ItemsSource = getCompileData(2022, 1, 1, 0);
-            Loaded += ParameterWindow_Loaded;
-            Closed += ParameterWindow_Closed;
-            RightButton.Click += RightButton_Click;
-            ReadParamButton.Click += ReadParamButton_Click;
-        }
-
-        private void ReadParamButton_Click(object sender, RoutedEventArgs e)
-        {
-            byte[] command = Protocol.GetParameter(false);
-            if(port != null)
+            if (oneChannel.IsNewVersion)
             {
+                byte[] command = Protocol.GetParameter(true);
                 port.Write(command, 0, command.Length);
             }
             else
             {
-                channelItem.client.GetStream().Write(command, 0, command.Length);
-                channelItem.client.GetStream().Flush();
+                byte[] command = Protocol.GetParameter(false);
+                port.Write(command, 0, command.Length);
             }
+        }
 
+        
+        
+
+        private void ResetErrorButton_Click(object sender, RoutedEventArgs e)
+        {
+            byte[] command = null;
+            if (oneChannel.IsNewVersion)
+            {
+                command = Protocol.GetErrorReset(true);
+            }
+            else
+            {
+                command = Protocol.GetErrorReset(false);
+            }
+            PrintCommand(command);
+            if (port != null)
+            {
+                port.Write(command, 0, command.Length);
+            }            
+        }
+
+        private void PrintCommand(byte[] command)
+        {
+            string hex = "";
+            foreach (byte b in command)
+            {
+                hex += " " + b.ToString("X2");
+            }
+            Console.WriteLine("Length:{0}, Data:{1}", command.Length, hex);
+        }
+
+        private void ReadParamButton_Click(object sender, RoutedEventArgs e)
+        {
+            byte[] command = null;
+            if (oneChannel.IsNewVersion)
+            {
+                command = Protocol.GetParameter(true);
+            }
+            else
+            {
+                command = Protocol.GetParameter(false);
+            }
+            PrintCommand(command);
+            if (port != null)
+            {
+                port.Write(command, 0, command.Length);
+            }
         }
 
         private void RightButton_Click(object sender, RoutedEventArgs e)
         {
+            RightSet = true;
             mode11.Clear();
             mode12.Clear();
             mode13.Clear();
             mode14.Clear();
             mode15.Clear();
             motor1.Clear();
+            fan1.Clear();
             mode11.AddRange(mode1);
             mode12.AddRange(mode2);
             mode13.AddRange(mode3);
             mode14.AddRange(mode4);
             mode15.AddRange(mode5);
             motor1.AddRange(motor);
+            fan1.AddRange(fan);
             SetGrid1.ItemsSource = mode11;
             SetGrid2.ItemsSource = mode12;
             SetGrid3.ItemsSource = mode13;
             SetGrid4.ItemsSource = mode14;
             SetGrid5.ItemsSource = mode15;
+            SetGrid6.ItemsSource = motor1;
+            FanGrid2.ItemsSource = fan1;
         }
 
-        private void ParameterWindow_Closed(object sender, EventArgs e)
-        {
-            channelItem.ParameterMode = false;
-        }
-
-        private void ParameterWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            channelItem.ParameterMode = true;
-            byte[] command = Protocol.GetParameter(false);
-            channelItem.client.GetStream().Write(command, 0, command.Length);
-        }
+        
 
         public void setParameter(byte[] data)
         {
@@ -237,6 +250,9 @@ namespace SmartCaraTest
             int VentileTemp2 = data[20];
             int OperateTime2 = data[21];
             int ExhaustFanOperateMode = data[22];
+
+            fan.Add(new SettingData() { Name = "배기 FAN 대기 모드", Value = ExhaustFanWaitMode });
+            fan.Add(new SettingData() { Name = "배기 FAN 운전 모드", Value = ExhaustFanOperateMode });
 
             mode2.Add(new SettingData() { Name = "ON TIME CW", Value = onTimeCW2 });
             mode2.Add(new SettingData() { Name = "OFF TIME CW", Value = offTimeCW2 });
@@ -319,7 +335,110 @@ namespace SmartCaraTest
                 MicomGrid4.ItemsSource = mode4;
                 MicomGrid5.ItemsSource = mode5;
                 MotorGrid.ItemsSource = motor;
+                FanGrid.ItemsSource = fan;
             }));
+            if (!Errorset)
+            {
+                byte[] command = Protocol.GetError(oneChannel.IsNewVersion);
+                PrintCommand(command);
+                port.Write(command, 0, command.Length);                
+                Errorset = true;
+            }
+        }
+        //12 01 99 46 28 1C 28 1C 87 00 5F 32 28 00 32 05 32 05 87 3A 5F 64 57 00 55 05 55 05 87 3C
+        //5F 8C 00 00 46 02 46 02 87 3E 5F A0 00 00 46 02 46 02 87 00 5F C8 00 00 14 09 05 0B 14 00
+        //00 00 00 00 00 00 00 00 F4 34
+
+        //12 01 99 46 28 1C 28 1C 87 00 5F 32 28 00 32 05 32 05 87 3A 5F 64 57 00 55 05 55 05 87 3C
+        //5F 8C 00 00 46 02 46 02 87 3E 5F A0 00 00 46 02 46 02 87 00 5F C8 00 00 14 09 05 0B 14 00
+        //00 00 00 00 00 00 00 00 0B 34
+
+        private byte[] GetParameterSettingData()
+        {
+            byte[] command = new byte[70];
+            command[0] = 0xCC;
+            if (oneChannel.IsNewVersion)
+            {
+                command[0] = 0x12;
+            }
+            command[1] = 0x01;
+            command[2] = 0x96;
+            command[3] = 0x46;
+            command[4] = (byte)mode11[0].Value;
+            command[5] = (byte)mode11[1].Value;
+            command[6] = (byte)mode11[2].Value;
+            command[7] = (byte)mode11[3].Value;
+            command[8] = (byte)mode11[4].Value;
+            command[9] = (byte)mode11[5].Value;
+            command[10] = (byte)mode11[6].Value;
+            command[11] = (byte)mode11[7].Value;
+            command[12] = (byte)fan1[0].Value;
+            command[13] = 0x00;
+            command[14] = (byte)mode12[0].Value;
+            command[15] = (byte)mode12[1].Value;
+            command[16] = (byte)mode12[2].Value;
+            command[17] = (byte)mode12[3].Value;
+            command[18] = (byte)mode12[4].Value;
+            command[19] = (byte)mode12[5].Value;
+            command[20] = (byte)mode12[6].Value;
+            command[21] = (byte)mode12[7].Value;
+            command[22] = (byte)fan1[1].Value;
+            command[23] = 0x00;
+            command[24] = (byte)mode13[0].Value;
+            command[25] = (byte)mode13[1].Value;
+            command[26] = (byte)mode13[2].Value;
+            command[27] = (byte)mode13[3].Value;
+            command[28] = (byte)mode13[4].Value;
+            command[29] = (byte)mode13[5].Value;
+            command[30] = (byte)mode13[6].Value;
+            command[31] = (byte)mode13[7].Value;
+            command[32] = 0x00;
+            command[33] = 0x00;
+            command[34] = (byte)mode14[0].Value;
+            command[35] = (byte)mode14[1].Value;
+            command[36] = (byte)mode14[2].Value;
+            command[37] = (byte)mode14[3].Value;
+            command[38] = (byte)mode14[4].Value;
+            command[39] = (byte)mode14[5].Value;
+            command[40] = (byte)mode14[6].Value;
+            command[41] = (byte)mode14[7].Value;
+            command[42] = 0x00;
+            command[43] = 0x00;
+            command[44] = (byte)mode15[0].Value;
+            command[45] = (byte)mode15[1].Value;
+            command[46] = (byte)mode15[2].Value;
+            command[47] = (byte)mode15[3].Value;
+            command[48] = (byte)mode15[4].Value;
+            command[49] = (byte)mode15[5].Value;
+            command[50] = (byte)mode15[6].Value;
+            command[51] = (byte)mode15[7].Value;
+            command[52] = 0x00;
+            command[53] = 0x00;
+            command[54] = (byte)motor1[0].Value;
+            command[55] = (byte)motor1[1].Value;
+            command[56] = (byte)motor1[2].Value;
+            command[57] = (byte)motor1[3].Value;
+            command[58] = (byte)motor1[4].Value;
+            command[59] = 0x00;
+            command[60] = 0x00;
+            command[61] = 0x00;
+            command[62] = 0x00;
+            command[63] = 0x00;
+            command[64] = 0x00;
+            command[65] = 0x00;
+            command[66] = 0x00;
+            command[67] = 0x00;
+            command[68] = Protocol.GetCheckSum(command, 1, 67);
+            //if (oneChannel.IsNewVersion)
+            //{
+            //    command[68] = (byte)(command[68] ^ 0xFF);
+            //}
+            command[69] = 0xEF;
+            if (oneChannel.IsNewVersion)
+            {
+                command[69] = 0x34;
+            }
+            return command;
         }
 
         public void setError(byte[] data)
@@ -370,6 +489,11 @@ namespace SmartCaraTest
             int hotWindTemp4 = data[50];
             int hotWindOnTime4 = data[51];
 
+            byte[] times = new byte[] { data[66], data[67] };
+            Console.WriteLine("First: {0} Second: {1}", data[66].ToString("X2"), data[67].ToString("X2"));
+            int timesInt = BitConverter.ToInt16(times, 0);
+
+
             ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
             list.Add(new SettingData() { Name = "에러 내용"});
             list.Add(new SettingData() { Name = "운전 모드", Value = runmode0, Value2 = runmode1, Value3 = runmode2, Value4 = runmode3, Value5 = runmode4 });
@@ -378,18 +502,13 @@ namespace SmartCaraTest
             list.Add(new SettingData() { Name = "배기 온도", Value = exhaustTemp0, Value2 = exhaustTemp1, Value3 = exhaustTemp2, Value4 = exhaustTemp3, Value5 = exhaustTemp4 });
             list.Add(new SettingData() { Name = "열풍 온도", Value = hotWindTemp0, Value2 = hotWindTemp1, Value3 = hotWindTemp2, Value4 = hotWindTemp3, Value5 = hotWindTemp4 });
             list.Add(new SettingData() { Name = "열풍 On Time", Value = hotWindOnTime0, Value2 = hotWindOnTime1, Value3 = hotWindOnTime2, Value4 = hotWindOnTime3, Value5 = hotWindOnTime4 });
-            list.Add(new SettingData() { Name = "운전 횟수" });
+            list.Add(new SettingData() { Name = "운전 횟수" , Value = timesInt});
             Dispatcher.BeginInvoke(new Action(() => 
             {
                 ErrorGrid.ItemsSource = list;
             }));
         }
 
-        public ParameterWindow(int channel)
-        {
-            InitializeComponent();
-            Initialize();
-        }
         private ObservableCollection<SettingData> getModeData()
         {
             ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();

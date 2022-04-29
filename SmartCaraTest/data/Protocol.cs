@@ -33,17 +33,13 @@ namespace SmartCaraTest.data
             command[2] = 0x99;
             command[3] = 0x07;
             command[4] = 0x00;
-            command[5] = 0x00;
+            command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
+            command[6] = ETX;
             if (renewal)
             {
-                command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
+                command[5] = (byte)(command[5] ^ 0xFF);
                 command[6] = 0x34;
             }
-            else
-            {
-                command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
-                command[6] = ETX;
-            }            
             return command;
         }
 
@@ -64,17 +60,43 @@ namespace SmartCaraTest.data
             command[2] = 0xB9;
             command[3] = 0x07;
             command[4] = 0x00;
-            command[5] = 0x00;
+            command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
+            command[6] = ETX;
             if (renewal)
             {
-                command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
+                command[5] = (byte)(command[5] ^ 0xFF);
+                command[6] = 0x34;
+            }
+            return command;
+        }
+
+        public static byte[] GetErrorReset(bool renewal)
+        {
+            byte[] command = new byte[7];
+            if (renewal)
+            {
+                command[0] = 0x12;
+                command[1] = 0x01;
                 command[6] = 0x34;
             }
             else
             {
-                command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
-                command[6] = ETX;
+                command[0] = 0xCC;
+                command[1] = 0x00;
+                command[6] = 0xEF;
             }
+            command[2] = 0xB6;
+            command[3] = 0x07;
+            command[4] = 0x00;
+            command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
+            command[6] = ETX;
+            if (renewal)
+            {
+                command[5] = (byte)(command[5] ^ 0xFF);
+                command[6] = 0x34;
+            }
+
+
             return command;
         }
 
@@ -126,7 +148,7 @@ namespace SmartCaraTest.data
                     command[4] = END;
                     break;
             }
-            command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4]);
+            command[5] = (byte)(command[1] ^ command[2] ^ command[3] ^ command[4] ^ 0xFF);
             command[6] = 0x34;
             return command;
         }

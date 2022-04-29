@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SmartCaraTest.util
@@ -26,17 +27,318 @@ namespace SmartCaraTest.util
             OnConnected(clientData);
             try
             {
+                clientData.Run = true;
+                //Thread check = new Thread(new ParameterizedThreadStart(CheckClient));
+                //check.Start(clientData);
+                Thread read = new Thread(new ParameterizedThreadStart(CheckData));
+                
+                read.Start(clientData);
                 //clientData.client.GetStream().BeginRead(clientData.readByteData, 0, clientData.readByteData.Length, new AsyncCallback(DataReceived), clientData);
-                //clientData.client.GetStream().BeginRead(clientData.readByteData, 0, clientData.readByteData.Length, new AsyncCallback(ReceiveData), clientData);
-                //clientData.client.GetStream().Read(new byte[19], 0, 19);
-                clientData.client.GetStream().BeginRead(clientData.readByteData, 0, clientData.readByteData.Length, new AsyncCallback(DataReceived), clientData);
                 clientDic.TryAdd(clientData.TimeMills, clientData);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
-        }        
+        }
+        private void CheckData(Object obj)
+        {
+            ClientData data = obj as ClientData;
+            while (data.Run)
+            {
+                try
+                {
+                    if (data.channel.ParameterMode)
+                    {
+                        continue;
+                    }
+                    byte[] request = null;
+                    if (data.channel.IsNewVersion)
+                    {
+                        request = Protocol.GetNewCommand(1);
+                    }
+                    else
+                    {
+                        request = Protocol.GetCommand(1);
+                    }
+                    data.client.GetStream().Write(request, 0, request.Length);
+                    if (data.client.GetStream().DataAvailable)
+                    {
+                        byte[] buffer = new byte[57];
+                        int bytes = data.client.GetStream().Read(buffer, 0, 57);
+                        
+                        
+                        Console.WriteLine("available {0}", bytes);
+                        byte[] slice = buffer.Slice(bytes);
+                        Console.WriteLine(byteToString(slice));
+                        
+                        checkReceivedData(slice, data);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    data.Run = false;
+                    RemoveClient(data);
+                }
+                Console.WriteLine("next");
+                Thread.Sleep(1000);
+            }
+        }
+               
+        private void checkReceivedData(byte[] arr, ClientData data)
+        {
+            Console.WriteLine("ch{0} [{1}] {2}",data.clientNumber, DateTime.Now.ToString("HH:mm:ss:ff") , byteToString(arr));
+            if (data.channel.IsNewVersion)
+            {
+                if(data.readCompleteData.Count == 0 && arr[0] == 02)
+                {
+                    return;
+                }
+                checkDataNewVersion(arr, data);
+            }
+            else
+            {
+                if (data.readCompleteData.Count == 0 && arr[0] == 02)
+                {
+                    return;
+                }
+                checkDataCurrentVersion(arr, data);
+            }
+
+        }
+
+        private void checkDataNewVersion(byte[] arr, ClientData data)
+        {
+            if (arr[0] == 0x12)
+            {
+                Console.WriteLine("head");
+                data.readCompleteData.AddRange(arr);
+                if (arr.Length > 4)
+                {
+                    if (arr[3] == data.readCompleteData.Count)
+                    {
+                        //완료
+                        data.channel.Dispatcher.BeginInvoke(new Action(() => {
+                            data.channel.SetView(data.readCompleteData.ToArray());
+                            data.readCompleteData.Clear();
+                        }));
+                        
+                    }
+                    else
+                    {
+                        //추가로 읽기
+                        byte[] buffer = new byte[57];
+                        int bytes = data.client.GetStream().Read(buffer, 0, 57);
+                        byte[] slice = buffer.Slice(bytes);
+                        checkReceivedData(slice, data);
+                    }
+                }
+                else
+                {
+                    if (data.client.GetStream().DataAvailable)
+                    {
+                        byte[] buffer = new byte[57];
+                        int bytes = data.client.GetStream().Read(buffer, 0, 57);
+                        byte[] slice = buffer.Slice(bytes);
+                        checkReceivedData(slice, data);
+                    }
+                    else
+                    {
+                        data.readCompleteData.Clear();
+                    }
+                }
+            }
+            else if (arr[arr.Length - 1] == 0x34)
+            {
+                Console.WriteLine("tail");
+                data.readCompleteData.AddRange(arr);
+                if (arr[3] == data.readCompleteData.Count)
+                {
+                    //완료
+                    data.channel.Dispatcher.BeginInvoke(new Action(() => {
+                        data.channel.SetView(data.readCompleteData.ToArray());
+                        data.readCompleteData.Clear();
+                    }));
+                }
+                else
+                {
+                    if (data.readCompleteData.Count > 57)
+                    {
+                        //잘못읽음
+                        data.readCompleteData.Clear();
+                    }
+                    else
+                    {
+                        if (data.client.GetStream().DataAvailable)
+                        {
+                            byte[] buffer = new byte[57];
+                            int bytes = data.client.GetStream().Read(buffer, 0, 57);
+                            byte[] slice = buffer.Slice(bytes);
+                            checkReceivedData(slice, data);
+                        }
+                        else
+                        {
+                            data.readCompleteData.Clear();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("body");
+                if (data.client.GetStream().DataAvailable)
+                {
+                    byte[] buffer = new byte[57];
+                    int bytes = data.client.GetStream().Read(buffer, 0, 57);
+                    byte[] slice = buffer.Slice(bytes);
+                    checkReceivedData(slice, data);
+                }
+                else
+                {
+                    data.readCompleteData.Clear();
+                }
+            }
+        }
+
+        private void checkDataCurrentVersion(byte[] arr, ClientData data)
+        {
+            if (arr[0] == 0xCC)
+            {
+                Console.WriteLine("head");
+                data.readCompleteData.AddRange(arr);
+                if (arr.Length > 4)
+                {
+                    if (arr[3] == data.readCompleteData.Count)
+                    {
+                        //완료
+                        data.channel.Dispatcher.BeginInvoke(new Action(() => {
+                            data.channel.SetView(data.readCompleteData.ToArray());
+                            data.readCompleteData.Clear();
+                        }));
+
+                    }
+                    else
+                    {
+                        //추가로 읽기
+                        byte[] buffer = new byte[57];
+                        int bytes = data.client.GetStream().Read(buffer, 0, 57);
+                        byte[] slice = buffer.Slice(bytes);
+                        checkReceivedData(slice, data);
+                    }
+                }
+                else
+                {
+                    if (data.client.GetStream().DataAvailable)
+                    {
+                        byte[] buffer = new byte[57];
+                        int bytes = data.client.GetStream().Read(buffer, 0, 57);
+                        byte[] slice = buffer.Slice(bytes);
+                        checkReceivedData(slice, data);
+                    }
+                    else
+                    {
+                        data.readCompleteData.Clear();
+                    }
+                }
+            }
+            else if (arr[arr.Length - 1] == 0xEF)
+            {
+                Console.WriteLine("tail");
+                data.readCompleteData.AddRange(arr);
+                if (arr[3] == data.readCompleteData.Count)
+                {
+                    //완료
+                    data.channel.Dispatcher.BeginInvoke(new Action(() => {
+                        data.channel.SetView(data.readCompleteData.ToArray());
+                        data.readCompleteData.Clear();
+                    }));
+                }
+                else
+                {
+                    if (data.readCompleteData.Count > 57)
+                    {
+                        //잘못읽음
+                        data.readCompleteData.Clear();
+                    }
+                    else
+                    {
+                        if (data.client.GetStream().DataAvailable)
+                        {
+                            byte[] buffer = new byte[57];
+                            int bytes = data.client.GetStream().Read(buffer, 0, 57);
+                            byte[] slice = buffer.Slice(bytes);
+                            checkReceivedData(slice, data);
+                        }
+                        else
+                        {
+                            data.readCompleteData.Clear();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("body");
+                if (data.client.GetStream().DataAvailable)
+                {
+                    byte[] buffer = new byte[57];
+                    int bytes = data.client.GetStream().Read(buffer, 0, 57);
+                    byte[] slice = buffer.Slice(bytes);
+                    checkReceivedData(slice, data);
+                }
+                else
+                {
+                    data.readCompleteData.Clear();
+                }
+            }
+        }
+
+        private void CheckClient(Object obj)
+        {
+            ClientData data = obj as ClientData;
+            while (data.Run)
+            {
+                if (data.channel.ParameterMode)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+                try
+                {
+                    byte[] command = null;
+                    if (data.channel.IsNewVersion)
+                    {
+                        command = Protocol.GetNewCommand(1);
+                    }
+                    else
+                    {
+                        command = Protocol.GetCommand(1);
+                    }
+                    Console.WriteLine("write: " + byteToString(command));
+                    data.client.GetStream().Write(command, 0, command.Length);
+                    if (!data.channel.Response)
+                    {
+                        data.channel.NonResponse++;
+                        if (data.channel.NonResponse > 20)
+                        {
+                            data.channel.Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                data.channel.Item23.cont.Content = "응답없음";
+                            }));
+                        }
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    data.Run = false;
+                    RemoveClient(data);
+                }
+                Thread.Sleep(1000);
+            }
+        }
+
 
         private void DataReceived(IAsyncResult ar)
         {

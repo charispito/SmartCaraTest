@@ -63,7 +63,7 @@ namespace SmartCaraTest
                     if (channel.IsNewVersion)
                     {
                         //byte[] command = Protocol.GetNewCommand(1);
-                        byte[] command = Protocol.GetError(true);
+                        byte[] command = Protocol.GetNewCommand(1);
                         port.Write(command, 0, command.Length);
                         PrintCommand(command);
                     }
@@ -74,8 +74,7 @@ namespace SmartCaraTest
                         Console.WriteLine("command");
                     }
                     
-                }               
-                Console.WriteLine("check1: {0} check2: {1}", channel.ParameterMode, channel.IsNewVersion);
+                }
             }
         }
 
@@ -97,7 +96,7 @@ namespace SmartCaraTest
                         else if (data[0] == 0x34)
                         {
                             PrintCommand(receivedData.ToArray());
-                            //CheckDataValid(receivedData.ToArray());
+                            CheckNewDataValid(receivedData.ToArray());
                             receivedData.Clear();
                             return;
                         }
@@ -107,13 +106,13 @@ namespace SmartCaraTest
                         if (data[0] == 0x12 && data[data.Length - 1] == 0x34)
                         {
                             PrintCommand(receivedData.ToArray());
-                            //CheckDataValid(receivedData.ToArray());
+                            CheckNewDataValid(receivedData.ToArray());
                             receivedData.Clear();
                         }
                         else if (data[data.Length - 1] == 0x34)
                         {
                             PrintCommand(receivedData.ToArray());
-                            //CheckDataValid(receivedData.ToArray());
+                            CheckNewDataValid(receivedData.ToArray());
                             receivedData.Clear();
                         }
                     }
@@ -149,6 +148,82 @@ namespace SmartCaraTest
                     }
                 }
             }         
+        }
+
+        private void CheckNewDataValid(byte[] array)
+        {
+            int stx_cnt = 0;
+            int etx_cnt = 0;
+            List<int> STXIndex = new List<int>();
+            List<int> ETXIndex = new List<int>();
+            if (array.Length < 4)
+            {
+                return;
+            }
+            if (array[3] == array.Length)
+            {
+                CheckCommand(array);
+            }
+            else
+            {
+                for (int i = 0; i < array.Length; i++)
+                {
+                    if (array[i] == 0x12)
+                    {
+                        STXIndex.Add(i);
+                        stx_cnt++;
+                    }
+                    else if (array[i] == 0x34)
+                    {
+                        ETXIndex.Add(i);
+                        etx_cnt++;
+                    }
+                }
+                if (stx_cnt > 1)
+                {
+                    if (stx_cnt == etx_cnt)
+                    {
+                        for (int i = 0; i < STXIndex.Count; i++)
+                        {
+                            ArrayView<byte> command = new ArrayView<byte>(array, STXIndex[i], ETXIndex[i] - STXIndex[i] + 1);
+                            if (command[3] == command.Length)
+                            {
+                                CheckCommand(command.ToArray());
+                            }
+                            else
+                            {
+                                Log(string.Format("Data Invalid. Data Length : {0}, Expected Length : {1}", command.Length, command[1]));
+                                Log(CommandToString(array));
+                            }
+                            PrintCommand(command.ToArray());
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("STX ETX Count Different STX : {0} ETX : {1}", stx_cnt, etx_cnt);
+                        Log(string.Format("STX ETX Count Different STX : {0} ETX : {1}", stx_cnt, etx_cnt));
+                        Log(CommandToString(array));
+                        if (etx_cnt > stx_cnt)
+                        {
+                            for (int i = 0; i < STXIndex.Count; i++)
+                            {
+                                ArrayView<byte> command = new ArrayView<byte>(array, STXIndex[i], ETXIndex[i + 1] - STXIndex[i] + 1);
+                                PrintCommand(command.ToArray());
+                                CheckCommand(command.ToArray());
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < ETXIndex.Count; i++)
+                            {
+                                ArrayView<byte> command = new ArrayView<byte>(array, STXIndex[i], ETXIndex[i] - STXIndex[i] + 1);
+                                PrintCommand(command.ToArray());
+                                CheckCommand(command.ToArray());
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void CheckDataValid(byte[] array)
