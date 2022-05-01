@@ -26,6 +26,7 @@ namespace SmartCaraTest
         private bool Errorset = false;
         private ChannelItem channelItem = null;
         private bool RightSet = false;
+        
         private List<SettingData> mode1 = new List<SettingData>();
         private List<SettingData> mode2 = new List<SettingData>();
         private List<SettingData> mode3 = new List<SettingData>();

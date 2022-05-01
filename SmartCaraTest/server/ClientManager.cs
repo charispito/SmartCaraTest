@@ -28,11 +28,15 @@ namespace SmartCaraTest.util
             try
             {
                 clientData.Run = true;
-                //Thread check = new Thread(new ParameterizedThreadStart(CheckClient));
-                //check.Start(clientData);
-                Thread read = new Thread(new ParameterizedThreadStart(CheckData));
-                
+                Thread check = new Thread(new ParameterizedThreadStart(CheckClient));
+                check.Start(clientData);
+                //Thread read = new Thread(new ParameterizedThreadStart(CheckData));
+                //나중에 이거 살리고 나머지 다 죽이면 됨
+                //read.Start(clientData);
+                Thread read = new Thread(new ParameterizedThreadStart(asyncReadAsync));
+
                 read.Start(clientData);
+
                 //clientData.client.GetStream().BeginRead(clientData.readByteData, 0, clientData.readByteData.Length, new AsyncCallback(DataReceived), clientData);
                 clientDic.TryAdd(clientData.TimeMills, clientData);
             }
@@ -41,6 +45,62 @@ namespace SmartCaraTest.util
                 Console.WriteLine(ex.ToString());
             }
         }
+
+        private async void asyncReadAsync(object obj)
+        {
+            ClientData clientdata = obj as ClientData;
+            while (clientdata.Run)
+            {
+                int result = await clientdata.client.GetStream().ReadAsync(clientdata.readByteParameterData, 0, 70);
+                Console.WriteLine("[{0}] Length: {1} Data: {2}", DateTime.Now.ToString("HH:mm:ss:ff"), result, byteToString(clientdata.readByteParameterData));
+                Array.Clear(clientdata.readByteParameterData, 0, result);
+                //if (clientdata.channel.ParameterMode)
+                //{
+                //    clientdata.client.GetStream().BeginRead(clientdata.readByteParameterData, 0, clientdata.readByteParameterData.Length, r => receiveParameterData(r, clientdata), null);
+                //}
+                //else
+                //{
+                //    clientdata.client.GetStream().BeginRead(clientdata.readByteData, 0, clientdata.readByteData.Length, r => receiveData(r, clientdata), null);
+                //}
+                
+            }
+        }
+
+        private void receiveData(IAsyncResult result, ClientData data)
+        {
+            int count = 0;
+            lock (data)
+            {
+                try
+                {
+                    count = data.client.GetStream().EndRead(result);
+                    Console.WriteLine("time: {0} length: {1} data: {2}",DateTime.Now.ToString("HH:mm:ss:ff"), count, byteToString(data.readByteParameterData));
+                    Array.Clear(data.readByteData, 0, count);
+                }catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+        }
+
+        private void receiveParameterData(IAsyncResult result, ClientData data)
+        {
+            int count = 0;
+            lock (data)
+            {
+                try
+                {
+                    count = data.client.GetStream().EndRead(result);
+                    Console.WriteLine("time: {0} length: {1} data: {2}", DateTime.Now.ToString("HH:mm:ss:ff"), count, byteToString(data.readByteParameterData));
+                    Array.Clear(data.readByteParameterData, 0, count);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+        }
+
         private void CheckData(Object obj)
         {
             ClientData data = obj as ClientData;
@@ -315,7 +375,7 @@ namespace SmartCaraTest.util
                     {
                         command = Protocol.GetCommand(1);
                     }
-                    Console.WriteLine("write: " + byteToString(command));
+                    Console.WriteLine("[{0}]write: " + byteToString(command), DateTime.Now.ToString("HH:mm:ss"));
                     data.client.GetStream().Write(command, 0, command.Length);
                     if (!data.channel.Response)
                     {
