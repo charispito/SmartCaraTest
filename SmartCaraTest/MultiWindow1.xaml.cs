@@ -61,6 +61,7 @@ namespace SmartCaraTest
                         {
                             if (item.Value.client != null && item.Value.client.Connected)
                             {
+                                item.Value.Run = false;
                                 byte[] cmd = null;
                                 if (item.Value.channel.IsNewVersion)
                                 {
@@ -1157,8 +1158,8 @@ namespace SmartCaraTest
         {
             ClientData callbackClient = ar.AsyncState as ClientData;
             int bytesRead = callbackClient.client.GetStream().EndRead(ar);
-            string readString = Encoding.Default.GetString(callbackClient.readByteData, 0, bytesRead);
-            Console.WriteLine("{0}번 사용자 : {1}", callbackClient.clientNumber, readString); callbackClient.client.GetStream().BeginRead(callbackClient.readByteData, 0, callbackClient.readByteData.Length, new AsyncCallback(DataReceived), callbackClient);
+            //string readString = Encoding.Default.GetString(callbackClient.readByteData, 0, bytesRead);
+            //Console.WriteLine("{0}번 사용자 : {1}", callbackClient.clientNumber, readString); callbackClient.client.GetStream().BeginRead(callbackClient.readByteData, 0, callbackClient.readByteData.Length, new AsyncCallback(DataReceived), callbackClient);
         }
     }
 }

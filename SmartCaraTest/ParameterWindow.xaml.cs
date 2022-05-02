@@ -218,6 +218,7 @@ namespace SmartCaraTest
 
         public void setParameter(byte[] data)
         {
+            Console.WriteLine("length: {0}", data.Length);
             if(data.Length != 70)
             {
                 return;
@@ -231,7 +232,7 @@ namespace SmartCaraTest
             int VentileTemp1 = data[10];
             int OperateTime1 = data[11];
             int ExhaustFanWaitMode = data[12];
-
+            Console.WriteLine("data: {0}", onTimeCCW1);
             mode1.Add(new SettingData() { Name = "ON TIME CW", Value = onTimeCW1 });
             mode1.Add(new SettingData() { Name = "OFF TIME CW", Value = offTimeCW1 });
             mode1.Add(new SettingData() { Name = "ON TIME CCW", Value = onTimeCCW1 });
@@ -322,6 +323,7 @@ namespace SmartCaraTest
             int motor3 = data[56];
             int motor4 = data[57];
             int motor5 = data[58];
+
             motor.Add(new SettingData() { Name = "이물질 감지 시간", Value = motor1 });
             motor.Add(new SettingData() { Name = "이물질 감지 전류", Value = motor2 });
             motor.Add(new SettingData() { Name = "이물질 감지 횟수", Value = motor3 });
@@ -440,7 +442,14 @@ namespace SmartCaraTest
             }
             return command;
         }
-
+        //12 01 96 46
+        //28 1C 28 1C 87 00 5F 04 28 00  4 ~ 13
+        //32 05 32 05 87 3A 5F 05 57 00  14 ~ 23
+        //55 05 55 05 87 3C 5F 08 00 00  24 ~ 33
+        //46 02 46 02 87 3E 5F 09 00 00  34 ~ 43
+        //46 02 46 02 87 00 5F 0A 00 00  44 ~ 53
+        //14 09 05 0B 14 00 00 00 00 00  54 ~ 63
+        //00 00 00 00 43 34
         public void setError(byte[] data)
         {
             //int motor01 = data[4];

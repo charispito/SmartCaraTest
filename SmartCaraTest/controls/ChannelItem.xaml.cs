@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -12,13 +13,19 @@ namespace SmartCaraTest.controls
 {
     public partial class ChannelItem : UserControl
     {
+        public StreamWriter streamWriter;
         public bool ParameterMode = false;
+        string now = DateTime.Now.ToString("yyyy-MM-dd");
         public bool Response = false;
+        public int number = 1;
         public bool IsNewVersion = false;
+        public int off_sum = 0;
+        public int air_sum = 0;
         public int NonResponse { get; set; } = 0;
         public MultiParameterWindow ParameterWindow { get; set; }
         public bool run = false;
         public int ItemIndex = 0;
+        public int ParameterCount = 0;
         public WPFChartView chartView { get; set; }
         public ObservableCollection<KeyValuePair<DateTime, int>> list1 = new ObservableCollection<KeyValuePair<DateTime, int>>();
         public ObservableCollection<KeyValuePair<DateTime, int>> list2 = new ObservableCollection<KeyValuePair<DateTime, int>>();
@@ -72,7 +79,25 @@ namespace SmartCaraTest.controls
                 Dispatcher.Invoke(new Action(() => { ChannelView.cont.Content = value; }));
             }
         }
-        
+
+        private void initFile()
+        {
+            air_sum = 0;
+            off_sum = 0;
+            number = 0;
+            streamWriter.WriteLine("날짜,모드,남은 시간,히터 온도,히터 오프타임,배기온도,FAN Speed," +
+                "열풍온도,열풍온타임,MOTOR,모터 전류,번호,오프타임합,오프평균,배기 합,배기 평균");
+        }
+
+        public void WriteFile(ReadData data)
+        {
+            number++;
+            air_sum += data.air_temp;
+            off_sum += data.heater_off_time;
+            streamWriter.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", data.date, data.mode, data.remain_time, data.heater_temp, data.heater_off_time,
+                data.air_temp, data.fan_speed, data.hot_air_temp, data.hot_air_ontime, data.motor, data.motor_current, number, off_sum, (double)(off_sum / (double)number), air_sum, (double)(air_sum / (double)number));
+        }
+
         public ChannelItem()
         {
             InitializeComponent();
@@ -112,13 +137,7 @@ namespace SmartCaraTest.controls
         }
 
         private void ParameterButton_Click(object sender, RoutedEventArgs e)
-        {
-            ParameterMode = true;
-            if (client.GetStream().DataAvailable)
-            {
-                byte[] buffer = new byte[57];
-                client.GetStream().Read(buffer, 0, buffer.Length);
-            }
+        {            
             Task.Delay(200).ContinueWith(_ => 
             {
                 Dispatcher.BeginInvoke(new Action(() => {
@@ -131,6 +150,7 @@ namespace SmartCaraTest.controls
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             run = false;
+            streamWriter.Close();
             chartView.ItemRun[ItemIndex] = false;
             byte[] command = null;
             if (IsNewVersion)
@@ -148,6 +168,17 @@ namespace SmartCaraTest.controls
         {
 
             byte[] command = null;
+            if (run)
+            {
+                MessageBox.Show("이미 시작했습니다.");
+                return;
+            }
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\ChannelData";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            string file = DateTime.Now.ToString("CH" + _Channel + "_yyyy년MM월dd일_HH시mm분ss초") + ".csv";
+            streamWriter = new StreamWriter(new FileStream(Path.Combine(path, file), FileMode.CreateNew), System.Text.Encoding.Default);
+            initFile();
             if (IsNewVersion)
             {
                 command = Protocol.GetNewCommand(2);
@@ -171,6 +202,16 @@ namespace SmartCaraTest.controls
                 chartView.initXAxis();
                 chartView.ItemRun[ItemIndex] = true;
             }
+        }
+
+        private void PrintCommand(byte[] command)
+        {
+            string hex = "";
+            foreach (byte b in command)
+            {
+                hex += " " + b.ToString("X2");
+            }
+            Console.WriteLine("Length:{0}, Data:{1}", command.Length, hex);
         }
 
         public void setHandler(RoutedEventHandler handler)
@@ -206,6 +247,7 @@ namespace SmartCaraTest.controls
                 if (data.Last() != 0xEF)
                     return;
             }
+            PrintCommand(data);
             Console.WriteLine("view");
             int motorRun = data[5];
             int heateroff = data[7]; //히터 오프타임
@@ -222,6 +264,7 @@ namespace SmartCaraTest.controls
             int t_min = data[19];
             int t_sec = data[20];
             int runTime = data[21];
+            int fan_duty = data[29];
             string time = string.Format("{0:D2}:{1:D2}", minute, second);
             string t_time = string.Format("{0:D2}:{1:D2}:{2:D2}", t_hour, t_min, t_sec);
             byte[] current = { 0, 0, data[13], data[14] };
@@ -248,6 +291,27 @@ namespace SmartCaraTest.controls
             bool[] errors0 = new bool[8];
             bool[] errors1 = new bool[8];
             int motorRunTime = data[12];
+
+            if (run)
+            {
+                ReadData read = new ReadData()
+                {
+                    date = now,
+                    mode = mode + 1,
+                    remain_time = time,
+                    heater_temp = heatertemp,
+                    heater_off_time = heateroff,
+                    air_temp = airtemp,
+                    fan_speed = fan_duty,
+                    hot_air_temp = airheatertemp,
+                    hot_air_ontime = heaterduty,
+                    motor = getMotorState(motorRun),
+                    motor_current = currnetDouble
+                };
+                WriteFile(read);
+            }
+            
+
             Item21.cont.Content = getModelName(data[48]);
             Item22.cont.Content = micom;
             Item24.cont.Content = time;
