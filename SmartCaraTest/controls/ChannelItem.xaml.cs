@@ -23,7 +23,25 @@ namespace SmartCaraTest.controls
         public int air_sum = 0;
         public int NonResponse { get; set; } = 0;
         public MultiParameterWindow ParameterWindow { get; set; }
-        public bool run = false;
+        private bool _run = false;
+        public bool run {
+            get
+            {
+                return _run;
+            }
+            set
+            {
+                _run = value;
+                if (value)
+                {
+                    Item23.cont.Content = "운전중";
+                }
+                else
+                {
+                    Item23.cont.Content = "정지";
+                }
+            }
+        }
         public int ItemIndex = 0;
         public int ParameterCount = 0;
         public WPFChartView chartView { get; set; }

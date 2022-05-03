@@ -163,15 +163,6 @@ namespace SmartCaraTest
             window.channelList.Remove(data.TimeMills);
         }
 
-        private string byteToString(byte[] data)
-        {
-            string hex = "";
-            foreach (byte b in data)
-            {
-                hex += " " + b.ToString("X2");
-            }
-            return hex;
-        }
 
         private void OnDataReceived(ClientData data)
         {            

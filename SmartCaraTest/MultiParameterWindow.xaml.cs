@@ -63,7 +63,7 @@ namespace SmartCaraTest
             }
             byte[] command = GetParameterSettingData();
             channelItem.client.GetStream().Write(command, 0, command.Length);
-            PrintCommand(GetParameterSettingData());
+            GetParameterSettingData().PrintHex(1);
         }
         public void setParameter(byte[] data)
         {
@@ -278,7 +278,7 @@ namespace SmartCaraTest
             ReadErrorButton.Click += (s, e) =>
             {
                 byte[] command = Protocol.GetError(channelItem.IsNewVersion);
-                PrintCommand(command);
+                command.PrintHex(1);
                 channelItem.client.GetStream().Write(command, 0, command.Length);
                 Errorset = true;
             };
@@ -315,7 +315,7 @@ namespace SmartCaraTest
                                 receivedData.Clear();
                                 byte[] command = Protocol.GetParameter(channelItem.IsNewVersion);
                                 channelItem.client.GetStream().Write(command, 0, command.Length);
-                                PrintCommand(command);
+                                command.PrintHex(1);
                                 byte[] buffer = new byte[70];
                                 int byteRead = channelItem.client.GetStream().Read(buffer, 0, buffer.Length);
                                 byte[] slice = buffer.Slice(byteRead);
@@ -385,7 +385,7 @@ namespace SmartCaraTest
                                 receivedData.Clear();
                                 byte[] command = Protocol.GetParameter(channelItem.IsNewVersion);
                                 channelItem.client.GetStream().Write(command, 0, command.Length);
-                                PrintCommand(command);
+                                command.PrintHex(1);
                                 byte[] buffer = new byte[70];
                                 int byteRead = channelItem.client.GetStream().Read(buffer, 0, buffer.Length);
                                 byte[] slice = buffer.Slice(byteRead);
@@ -460,7 +460,7 @@ namespace SmartCaraTest
                                 receivedData.Clear();
                                 byte[] command = Protocol.GetError(channelItem.IsNewVersion);
                                 channelItem.client.GetStream().Write(command, 0, command.Length);
-                                PrintCommand(command);
+                                command.PrintHex(1);
                                 byte[] buffer = new byte[70];
                                 int byteRead = channelItem.client.GetStream().Read(buffer, 0, buffer.Length);
                                 byte[] slice = buffer.Slice(byteRead);
@@ -530,7 +530,7 @@ namespace SmartCaraTest
                                 receivedData.Clear();
                                 byte[] command = Protocol.GetError(channelItem.IsNewVersion);
                                 channelItem.client.GetStream().Write(command, 0, command.Length);
-                                PrintCommand(command);
+                                command.PrintHex(1);
                                 byte[] buffer = new byte[70];
                                 int byteRead = channelItem.client.GetStream().Read(buffer, 0, buffer.Length);
                                 byte[] slice = buffer.Slice(byteRead);
@@ -579,7 +579,7 @@ namespace SmartCaraTest
         private void ReadParamButton_Click(object sender, RoutedEventArgs e)
         {
             byte[] command = Protocol.GetParameter(channelItem.IsNewVersion);
-            PrintCommand(command);
+            command.PrintHex(1);
             channelItem.client.GetStream().Write(command, 0, command.Length);
             channelItem.client.GetStream().Flush();
             
@@ -629,15 +629,6 @@ namespace SmartCaraTest
         private void ParameterWindow_Loaded(object sender, RoutedEventArgs e)
         {
             channelItem.ParameterMode = true;
-            //byte[] command = Protocol.GetParameter(channelItem.IsNewVersion);
-            //PrintCommand(command);
-            //channelItem.client.GetStream().Write(command, 0, command.Length);
-            //byte[] buffer = new byte[70];
-            //int byteRead = channelItem.client.GetStream().Read(buffer, 0, buffer.Length);
-            //Console.WriteLine("received: {0}", byteRead);
-            //PrintCommand(buffer);
-            //byte[] slice = buffer.Slice(byteRead);
-            //checkReadData(slice);
         }
 
         private void ResetErrorButton_Click(object sender, RoutedEventArgs e)
@@ -651,7 +642,7 @@ namespace SmartCaraTest
             {
                 command = Protocol.GetErrorReset(false);
             }
-            PrintCommand(command);
+            command.PrintHex(1);
 
             channelItem.client.GetStream().Write(command, 0, command.Length);
             channelItem.client.GetStream().Flush();
@@ -871,15 +862,6 @@ namespace SmartCaraTest
             ObservableCollection<CompileData> list = new ObservableCollection<CompileData>();
             list.Add(new CompileData { Year = year, Month = month, Day = day, Ver = ver });
             return list;
-        }
-        private void PrintCommand(byte[] command)
-        {
-            string hex = "";
-            foreach (byte b in command)
-            {
-                hex += " " + b.ToString("X2");
-            }
-            Console.WriteLine("Length:{0}, Data:{1}", command.Length, hex);
         }
     }
 }

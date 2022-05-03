@@ -99,7 +99,7 @@ namespace SmartCaraTest
             ReadParamButton.Click += ReadParamButton_Click;
             ReadErrorButton.Click += (s, e) => {
                 byte[] command = Protocol.GetError(oneChannel.IsNewVersion);
-                PrintCommand(command);
+                command.PrintHex(1);
                 port.Write(command, 0, command.Length);
             };
             WriteParamButton.Click += WriteParamButton_Click;
@@ -128,16 +128,8 @@ namespace SmartCaraTest
         private void ParameterWindow_Loaded1(object sender, RoutedEventArgs e)
         {
             oneChannel.ParameterMode = true;
-            if (oneChannel.IsNewVersion)
-            {
-                byte[] command = Protocol.GetParameter(true);
-                port.Write(command, 0, command.Length);
-            }
-            else
-            {
-                byte[] command = Protocol.GetParameter(false);
-                port.Write(command, 0, command.Length);
-            }
+            byte[] command = Protocol.GetParameter(oneChannel.IsNewVersion);
+            port.Write(command, 0, command.Length);
         }
 
         
@@ -154,35 +146,19 @@ namespace SmartCaraTest
             {
                 command = Protocol.GetErrorReset(false);
             }
-            PrintCommand(command);
+            command.PrintHex(1);
             if (port != null)
             {
                 port.Write(command, 0, command.Length);
             }            
         }
 
-        private void PrintCommand(byte[] command)
-        {
-            string hex = "";
-            foreach (byte b in command)
-            {
-                hex += " " + b.ToString("X2");
-            }
-            Console.WriteLine("Length:{0}, Data:{1}", command.Length, hex);
-        }
+       
 
         private void ReadParamButton_Click(object sender, RoutedEventArgs e)
         {
-            byte[] command = null;
-            if (oneChannel.IsNewVersion)
-            {
-                command = Protocol.GetParameter(true);
-            }
-            else
-            {
-                command = Protocol.GetParameter(false);
-            }
-            PrintCommand(command);
+            byte[] command = Protocol.GetParameter(oneChannel.IsNewVersion);
+            command.PrintHex(1);
             if (port != null)
             {
                 port.Write(command, 0, command.Length);
