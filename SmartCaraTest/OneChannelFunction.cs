@@ -77,37 +77,45 @@ namespace SmartCaraTest
         {
             PrintCommand(array);
             byte check = Protocol.GetCheckSum(array, 1, array.Length - 3);
-            switch (array[2])
+            try
             {
-                case 0xA0:
-                    Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[55].ToString("X2"));
-                    Dispatcher.BeginInvoke(new Action(() => 
-                    {
-                        setView(array);
-                    }));
-                    break;
-                case 0xAA:
-                    Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[55].ToString("X2"));
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        setView(array);
-                    }));
-                    break;
-                case 0x99:
-                    Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[68].ToString("X2"));
-                    if (channel.ParameterMode && channel.parameterWindow != null)
-                    {
-                        channel.parameterWindow.setParameter(array);
-                    }
-                    break;
-                case 0xB9:
-                    Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[68].ToString("X2"));
-                    if (channel.ParameterMode && channel.parameterWindow != null)
-                    {
-                        channel.parameterWindow.setError(array);
-                    }
-                    break;
+                switch (array[2])
+                {
+                    case 0xA0:
+                        Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[55].ToString("X2"));
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            setView(array);
+                        }));
+                        break;
+                    case 0xAA:
+                        Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[55].ToString("X2"));
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            setView(array);
+                        }));
+                        break;
+                    case 0x99:
+                        Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[68].ToString("X2"));
+                        if (channel.ParameterMode && channel.parameterWindow != null)
+                        {
+                            channel.parameterWindow.setParameter(array);
+                        }
+                        break;
+                    case 0xB9:
+                        Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[68].ToString("X2"));
+                        if (channel.ParameterMode && channel.parameterWindow != null)
+                        {
+                            channel.parameterWindow.setError(array);
+                        }
+                        break;
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            
         }
 
         private void setView(byte[] data)

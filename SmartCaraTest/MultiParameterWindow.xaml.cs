@@ -281,10 +281,6 @@ namespace SmartCaraTest
                 PrintCommand(command);
                 channelItem.client.GetStream().Write(command, 0, command.Length);
                 Errorset = true;
-                byte[] buffer = new byte[70];
-                int bytes = channelItem.client.GetStream().Read(buffer, 0, buffer.Length);
-                byte[] slice = buffer.Slice(bytes);
-                checkErrorData(slice);
             };
             WriteParamButton.Click += WriteParamButton_Click;
             ResetErrorButton.Click += ResetErrorButton_Click;
@@ -586,14 +582,7 @@ namespace SmartCaraTest
             PrintCommand(command);
             channelItem.client.GetStream().Write(command, 0, command.Length);
             channelItem.client.GetStream().Flush();
-            if (channelItem.client.GetStream().DataAvailable)
-            {
-                byte[] buffer = new byte[70];
-                int read = channelItem.client.GetStream().Read(buffer, 0, buffer.Length);
-                byte[] slice = buffer.Slice(read);
-                PrintCommand(slice);
-                checkParamterData(slice);
-            }
+            
         }
 
         private void RightButton_Click(object sender, RoutedEventArgs e)

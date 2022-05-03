@@ -98,7 +98,8 @@ namespace SmartCaraTest
             RightButton.Click += RightButton_Click;
             ReadParamButton.Click += ReadParamButton_Click;
             ReadErrorButton.Click += (s, e) => {
-                byte[] command = Protocol.GetError(false);
+                byte[] command = Protocol.GetError(oneChannel.IsNewVersion);
+                PrintCommand(command);
                 port.Write(command, 0, command.Length);
             };
             WriteParamButton.Click += WriteParamButton_Click;
@@ -214,12 +215,11 @@ namespace SmartCaraTest
             FanGrid2.ItemsSource = fan1;
         }
 
-        
+
 
         public void setParameter(byte[] data)
         {
-            Console.WriteLine("length: {0}", data.Length);
-            if(data.Length != 70)
+            if (data.Length != 70)
             {
                 return;
             }
@@ -232,7 +232,12 @@ namespace SmartCaraTest
             int VentileTemp1 = data[10];
             int OperateTime1 = data[11];
             int ExhaustFanWaitMode = data[12];
-            Console.WriteLine("data: {0}", onTimeCCW1);
+            if (mode1 == null)
+            {
+                mode1 = new List<SettingData>();
+            }
+            mode1.Clear();
+
             mode1.Add(new SettingData() { Name = "ON TIME CW", Value = onTimeCW1 });
             mode1.Add(new SettingData() { Name = "OFF TIME CW", Value = offTimeCW1 });
             mode1.Add(new SettingData() { Name = "ON TIME CCW", Value = onTimeCCW1 });
@@ -252,8 +257,20 @@ namespace SmartCaraTest
             int OperateTime2 = data[21];
             int ExhaustFanOperateMode = data[22];
 
+            if (fan == null)
+            {
+                fan = new List<SettingData>();
+            }
+            fan.Clear();
+
             fan.Add(new SettingData() { Name = "배기 FAN 대기 모드", Value = ExhaustFanWaitMode });
             fan.Add(new SettingData() { Name = "배기 FAN 운전 모드", Value = ExhaustFanOperateMode });
+
+            if (mode2 == null)
+            {
+                mode2 = new List<SettingData>();
+            }
+            mode2.Clear();
 
             mode2.Add(new SettingData() { Name = "ON TIME CW", Value = onTimeCW2 });
             mode2.Add(new SettingData() { Name = "OFF TIME CW", Value = offTimeCW2 });
@@ -273,6 +290,12 @@ namespace SmartCaraTest
             int VentileTemp3 = data[30];
             int OperateTime3 = data[31];
 
+            if (mode3 == null)
+            {
+                mode3 = new List<SettingData>();
+            }
+            mode3.Clear();
+
             mode3.Add(new SettingData() { Name = "ON TIME CW", Value = onTimeCW3 });
             mode3.Add(new SettingData() { Name = "OFF TIME CW", Value = offTimeCW3 });
             mode3.Add(new SettingData() { Name = "ON TIME CCW", Value = onTimeCCW3 });
@@ -290,6 +313,12 @@ namespace SmartCaraTest
             int HeaterOffTime4 = data[39];
             int VentileTemp4 = data[40];
             int OperateTime4 = data[41];
+
+            if (mode4 == null)
+            {
+                mode4 = new List<SettingData>();
+            }
+            mode4.Clear();
 
             mode4.Add(new SettingData() { Name = "ON TIME CW", Value = onTimeCW4 });
             mode4.Add(new SettingData() { Name = "OFF TIME CW", Value = offTimeCW4 });
@@ -309,6 +338,12 @@ namespace SmartCaraTest
             int VentileTemp5 = data[50];
             int OperateTime5 = data[51];
 
+            if (mode5 == null)
+            {
+                mode5 = new List<SettingData>();
+            }
+            mode5.Clear();
+
             mode5.Add(new SettingData() { Name = "ON TIME CW", Value = onTimeCW5 });
             mode5.Add(new SettingData() { Name = "OFF TIME CW", Value = offTimeCW5 });
             mode5.Add(new SettingData() { Name = "ON TIME CCW", Value = onTimeCCW5 });
@@ -324,13 +359,28 @@ namespace SmartCaraTest
             int motor4 = data[57];
             int motor5 = data[58];
 
+            if (motor == null)
+            {
+                motor = new List<SettingData>();
+            }
+            motor.Clear();
+
             motor.Add(new SettingData() { Name = "이물질 감지 시간", Value = motor1 });
             motor.Add(new SettingData() { Name = "이물질 감지 전류", Value = motor2 });
             motor.Add(new SettingData() { Name = "이물질 감지 횟수", Value = motor3 });
             motor.Add(new SettingData() { Name = "과부하 감지 전류", Value = motor4 });
             motor.Add(new SettingData() { Name = "과부하 감지 횟수", Value = motor5 });
-            Dispatcher.BeginInvoke(new Action(() => 
+            Dispatcher.BeginInvoke(new Action(() =>
             {
+                MicomGrid.ItemsSource = null;
+                MicomGrid2.ItemsSource = null;
+                MicomGrid3.ItemsSource = null;
+                MicomGrid4.ItemsSource = null;
+                MicomGrid5.ItemsSource = null;
+                MotorGrid.ItemsSource = null;
+                FanGrid.ItemsSource = null;
+
+
                 MicomGrid.ItemsSource = mode1;
                 MicomGrid2.ItemsSource = mode2;
                 MicomGrid3.ItemsSource = mode3;
@@ -339,13 +389,7 @@ namespace SmartCaraTest
                 MotorGrid.ItemsSource = motor;
                 FanGrid.ItemsSource = fan;
             }));
-            if (!Errorset)
-            {
-                byte[] command = Protocol.GetError(oneChannel.IsNewVersion);
-                PrintCommand(command);
-                port.Write(command, 0, command.Length);                
-                Errorset = true;
-            }
+
         }
         //12 01 99 46 28 1C 28 1C 87 00 5F 32 28 00 32 05 32 05 87 3A 5F 64 57 00 55 05 55 05 87 3C
         //5F 8C 00 00 46 02 46 02 87 3E 5F A0 00 00 46 02 46 02 87 00 5F C8 00 00 14 09 05 0B 14 00
