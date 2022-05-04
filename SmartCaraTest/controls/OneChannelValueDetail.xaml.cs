@@ -28,7 +28,21 @@ namespace SmartCaraTest.controls
         private int _ConnectState = 0;
         public bool ParameterMode = false;
         public ParameterWindow parameterWindow;
-        public bool run = false;
+        public bool _run = false;
+        public bool run {
+            get { return _run; }
+            set { 
+                _run = value;
+                if (value)
+                {
+                    Item23.cont.Content = "운전중";
+                }
+                else
+                {
+                    Item23.cont.Content = "대기중";
+                }
+            }
+        }
         public int number = 1;
         public bool IsNewVersion = false;
         public int off_sum = 0;
@@ -146,6 +160,11 @@ namespace SmartCaraTest.controls
                 MessageBox.Show("연결 되지 않았습니다.");
                 return;
             }
+            if (run)
+            {
+                MessageBox.Show("이미 운전중입니다.");
+                return;
+            }
             string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\ChannelData";
             if(!Directory.Exists(path))
                 Directory.CreateDirectory(path);
@@ -171,7 +190,6 @@ namespace SmartCaraTest.controls
             list6.Clear();
             list7.Clear();
             list8.Clear();
-            run = true;
 
             if (chartView != null)
             {
@@ -179,6 +197,9 @@ namespace SmartCaraTest.controls
                 chartView.ItemRun[0] = true;
             }
         }
+        //SMARTCARA-IPTIME1
+        //SMARTCARA-IPTIME2
+        //SMARTCARA-IPTIME3
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
@@ -189,7 +210,6 @@ namespace SmartCaraTest.controls
             }
             if (streamWriter != null)
             streamWriter.Close();
-            run = false;
             chartView.ItemRun[0] = false;
             if (IsNewVersion)
             {

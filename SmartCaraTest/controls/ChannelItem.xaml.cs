@@ -277,7 +277,20 @@ namespace SmartCaraTest.controls
             int mode = data[15];
             int minute = data[16];
             int second = data[17];
-
+            if (mode == 7)
+            {
+                if (run)
+                {
+                    run = false;
+                }
+            }
+            else
+            {
+                if (!run)
+                {
+                    run = true;
+                }
+            }
             int t_hour = data[18];
             int t_min = data[19];
             int t_sec = data[20];
@@ -296,6 +309,7 @@ namespace SmartCaraTest.controls
             string micom = $"{year}.{month}.{day}. ver {version}";
             byte error0 = data[49];
             byte error1 = data[50];
+            int hot_air_fan_duty = data[30];
             int[] binary0 = Enumerable.Range(1, 8).Select(i => error0 / (1 << (8 - i)) % 2).ToArray();
             int[] binary1 = Enumerable.Range(1, 8).Select(i => error1 / (1 << (8 - i)) % 2).ToArray();
             Array.Reverse(binary0);
@@ -309,7 +323,33 @@ namespace SmartCaraTest.controls
             bool[] errors0 = new bool[8];
             bool[] errors1 = new bool[8];
             int motorRunTime = data[12];
-
+            for (int i = 0; i < 8; i++)
+            {
+                if (binary0[i] == 0)
+                {
+                    errors0[i] = true;
+                }
+                else
+                {
+                    errors0[i] = false;
+                }
+                if (binary1[i] == 0)
+                {
+                    errors1[i] = true;
+                }
+                else
+                {
+                    errors1[i] = false;
+                }
+            }
+            if (errors1[6])
+            {
+                Item16.cont.Content = "정상";
+            }
+            else
+            {
+                Item16.cont.Content = "감지";
+            }
             if (run)
             {
                 ReadData read = new ReadData()
@@ -336,6 +376,8 @@ namespace SmartCaraTest.controls
             Item1.cont.Content = heatertemp + "ºC";
             Item2.cont.Content = airtemp + "ºC";
             Item3.cont.Content = airheatertemp + "ºC";
+            Item5.cont.Content = fan_duty + "%";
+            Item15.cont.Content = hot_air_fan_duty + "%";
             Item11.cont.Content = heateroff;
             Item12.cont.Content = airaverage + "ºC";
             Item13.cont.Content = heaterduty;

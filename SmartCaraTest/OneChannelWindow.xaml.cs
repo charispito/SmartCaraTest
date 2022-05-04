@@ -65,7 +65,7 @@ namespace SmartCaraTest
                         //byte[] command = Protocol.GetNewCommand(1);
                         byte[] command = Protocol.GetNewCommand(1);
                         port.Write(command, 0, command.Length);
-                        PrintCommand(command);
+                        command.PrintHex(1);
                     }
                     else
                     {
@@ -84,7 +84,7 @@ namespace SmartCaraTest
             byte[] data = new byte[Length];
             port.Read(data, 0, Length);
             receivedData.AddRange(data);
-            PrintCommand(data);
+            data.PrintHex(1);
             if (channel.IsNewVersion)
             {
                 if (Length > 0)
@@ -95,7 +95,7 @@ namespace SmartCaraTest
                             return;
                         else if (data[0] == 0x34)
                         {
-                            PrintCommand(receivedData.ToArray());
+                            receivedData.ToArray().PrintHex(1);
                             CheckNewDataValid(receivedData.ToArray());
                             receivedData.Clear();
                             return;
@@ -105,13 +105,13 @@ namespace SmartCaraTest
                     {
                         if (data[0] == 0x12 && data[data.Length - 1] == 0x34)
                         {
-                            PrintCommand(receivedData.ToArray());
+                            receivedData.ToArray().PrintHex(1);
                             CheckNewDataValid(receivedData.ToArray());
                             receivedData.Clear();
                         }
                         else if (data[data.Length - 1] == 0x34)
                         {
-                            PrintCommand(receivedData.ToArray());
+                            receivedData.ToArray().PrintHex(1);
                             CheckNewDataValid(receivedData.ToArray());
                             receivedData.Clear();
                         }
@@ -195,7 +195,7 @@ namespace SmartCaraTest
                                 Log(string.Format("Data Invalid. Data Length : {0}, Expected Length : {1}", command.Length, command[1]));
                                 Log(CommandToString(array));
                             }
-                            PrintCommand(command.ToArray());
+                            command.ToArray().PrintHex(1);
                         }
                     }
                     else
@@ -208,7 +208,7 @@ namespace SmartCaraTest
                             for (int i = 0; i < STXIndex.Count; i++)
                             {
                                 ArrayView<byte> command = new ArrayView<byte>(array, STXIndex[i], ETXIndex[i + 1] - STXIndex[i] + 1);
-                                PrintCommand(command.ToArray());
+                                command.ToArray().PrintHex(1);
                                 CheckCommand(command.ToArray());
                             }
                         }
@@ -217,7 +217,7 @@ namespace SmartCaraTest
                             for (int i = 0; i < ETXIndex.Count; i++)
                             {
                                 ArrayView<byte> command = new ArrayView<byte>(array, STXIndex[i], ETXIndex[i] - STXIndex[i] + 1);
-                                PrintCommand(command.ToArray());
+                                command.ToArray().PrintHex(1);
                                 CheckCommand(command.ToArray());
                             }
                         }
@@ -270,7 +270,7 @@ namespace SmartCaraTest
                                 Log(string.Format("Data Invalid. Data Length : {0}, Expected Length : {1}", command.Length, command[1]));
                                 Log(CommandToString(array));
                             }
-                            PrintCommand(command.ToArray());
+                            command.ToArray().PrintHex(1);
                         }
                     }
                     else
@@ -283,7 +283,7 @@ namespace SmartCaraTest
                             for (int i = 0; i < STXIndex.Count; i++)
                             {
                                 ArrayView<byte> command = new ArrayView<byte>(array, STXIndex[i], ETXIndex[i + 1] - STXIndex[i] + 1);
-                                PrintCommand(command.ToArray());
+                                command.ToArray().PrintHex(1);
                                 CheckCommand(command.ToArray());
                             }
                         }
@@ -292,7 +292,7 @@ namespace SmartCaraTest
                             for (int i = 0; i < ETXIndex.Count; i++)
                             {
                                 ArrayView<byte> command = new ArrayView<byte>(array, STXIndex[i], ETXIndex[i] - STXIndex[i] + 1);
-                                PrintCommand(command.ToArray());
+                                command.ToArray().PrintHex(1);
                                 CheckCommand(command.ToArray());
                             }
                         }

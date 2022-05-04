@@ -1,4 +1,5 @@
 ﻿using SmartCaraTest.data;
+using SmartCaraTest.util;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,17 +18,7 @@ namespace SmartCaraTest
             DateTime NowDate = DateTime.Now;
             return NowDate.ToString("yyyy-MM-dd HH:mm:ss") + ":" + NowDate.Millisecond.ToString("000");
         }
-
-        private void PrintCommand(byte[] command)
-        {
-            string hex = "";
-            foreach (byte b in command)
-            {
-                hex += " " + b.ToString("X2");
-            }
-            Console.WriteLine("Length:{0}, Data:{1}",command.Length, hex);
-        }
-
+       
         private string CommandToString(byte[] command)
         {
             string hex = "";
@@ -75,7 +66,7 @@ namespace SmartCaraTest
 
         private void CheckCommand(byte[] array)
         {
-            PrintCommand(array);
+            array.PrintHex(1);
             byte check = Protocol.GetCheckSum(array, 1, array.Length - 3);
             try
             {
@@ -134,7 +125,17 @@ namespace SmartCaraTest
             int mode = data[15];
             int minute = data[16];
             int second = data[17];
-
+            if(mode == 7)
+            {
+                channel.run = false;
+            }
+            else
+            {
+                if (!channel.run)
+                {
+                    channel.run = true;
+                }
+            }
             int t_hour = data[18];
             int t_min = data[19];
             int t_sec = data[20];
@@ -164,6 +165,33 @@ namespace SmartCaraTest
             //4 = 0100 CCW
             bool[] errors0 = new bool[8];
             bool[] errors1 = new bool[8];
+            for (int i = 0; i < 8; i++)
+            {
+                if (binary0[i] == 0)
+                {
+                    errors0[i] = true;
+                }
+                else
+                {
+                    errors0[i] = false;
+                }
+                if (binary1[i] == 0)
+                {
+                    errors1[i] = true;
+                }
+                else
+                {
+                    errors1[i] = false;
+                }
+            }
+            if (errors1[6])
+            {
+                channel.Item16.cont.Content = "정상";
+            }
+            else
+            {
+                channel.Item16.cont.Content = "감지";
+            }
             int motorRunTime = data[12];
             int operationTime = 10;
             int cw_on = data[22];
@@ -225,6 +253,8 @@ namespace SmartCaraTest
             channel.Item1.cont.Content = heatertemp + "ºC";
             channel.Item2.cont.Content = airtemp + "ºC";
             channel.Item3.cont.Content = airheatertemp + "ºC";
+            channel.Item5.cont.Content = fan_duty + "%";
+            channel.Item15.cont.Content = hot_air_fan_duty + "%";
             channel.Item11.cont.Content = heateroff;
             channel.Item12.cont.Content = airaverage + "ºC";
             channel.Item13.cont.Content = heaterduty;
@@ -273,6 +303,8 @@ namespace SmartCaraTest
         {
             switch (model)
             {
+                case 0:
+                    return "PCS 400";
                 case 1:
                     return "PCS 500";
                 case 2:

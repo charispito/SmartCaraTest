@@ -138,7 +138,7 @@ namespace SmartCaraTest
                 if (channel != null)
                 {
                     window.channelList[data.TimeMills] = index;
-                    channel.Channel = data.clientNumber;
+                    channel.Channel = data.clientNumber - 10;
                     channel.TimeMills = data.TimeMills;
                     data.channel = channel;
                     channel.client = data.client;
