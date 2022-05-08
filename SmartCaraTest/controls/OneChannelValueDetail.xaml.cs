@@ -165,7 +165,7 @@ namespace SmartCaraTest.controls
                 MessageBox.Show("이미 운전중입니다.");
                 return;
             }
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\ChannelData";
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ChannelData";
             if(!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             string file = DateTime.Now.ToString("싱글yyyy년MM월dd일_HH시mm분ss초") + ".csv";

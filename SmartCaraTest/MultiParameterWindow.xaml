@@ -669,9 +669,9 @@
                 <RowDefinition/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Label Content="Micom 정보" Grid.Column="1" FontSize="15" FontWeight="Black"/>
-            <Label VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Row="1" Grid.RowSpan="2" Content="컴파일 정보" Grid.Column="1" Background="#CCC" BorderBrush="Black" BorderThickness="0.5"/>
-            <DataGrid VerticalAlignment="Center" Style="{StaticResource GridStyle}" HeadersVisibility="Column" Background="Transparent" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" BorderThickness="2,2,0,0" Height="Auto" CanUserAddRows="False" HorizontalScrollBarVisibility="Disabled" AutoGenerateColumns="False" x:Name="ComplieGrid">
+            <Label Visibility="Collapsed" Content="Micom 정보" Grid.Column="1" FontSize="15" FontWeight="Black"/>
+            <Label Visibility="Collapsed" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Row="1" Grid.RowSpan="2" Content="컴파일 정보" Grid.Column="1" Background="#CCC" BorderBrush="Black" BorderThickness="0.5"/>
+            <DataGrid Visibility="Collapsed" VerticalAlignment="Center" Style="{StaticResource GridStyle}" HeadersVisibility="Column" Background="Transparent" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" BorderThickness="2,2,0,0" Height="Auto" CanUserAddRows="False" HorizontalScrollBarVisibility="Disabled" AutoGenerateColumns="False" x:Name="ComplieGrid">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="{x:Type DataGridColumnHeader}">
                         <Setter Property="Background" Value="#CCC"/>

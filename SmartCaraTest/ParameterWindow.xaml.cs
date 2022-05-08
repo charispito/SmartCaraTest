@@ -1,9 +1,11 @@
 ﻿using SmartCaraTest.controls;
 using SmartCaraTest.data;
+using SmartCaraTest.setting;
 using SmartCaraTest.util;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -27,6 +29,7 @@ namespace SmartCaraTest
         private SerialPort port = null;
         private bool Errorset = false;
         private OneChannelValueDetail oneChannel;
+        private List<string> files;
         private bool RightSet = false;
         private List<SettingData> mode1 = new List<SettingData>();
         private List<SettingData> mode2 = new List<SettingData>();
@@ -35,16 +38,17 @@ namespace SmartCaraTest
         private List<SettingData> mode5 = new List<SettingData>();
         private List<SettingData> motor = new List<SettingData>();
 
-        private List<SettingData> mode11 = new List<SettingData>();
-        private List<SettingData> mode12 = new List<SettingData>();
-        private List<SettingData> mode13 = new List<SettingData>();
-        private List<SettingData> mode14 = new List<SettingData>();
-        private List<SettingData> mode15 = new List<SettingData>();
-        private List<SettingData> motor1 = new List<SettingData>();
+        private RangeEnabledObservableCollection<SettingData> mode11 = new RangeEnabledObservableCollection<SettingData>();
+        private RangeEnabledObservableCollection<SettingData> mode12 = new RangeEnabledObservableCollection<SettingData>();
+        private RangeEnabledObservableCollection<SettingData> mode13 = new RangeEnabledObservableCollection<SettingData>();
+        private RangeEnabledObservableCollection<SettingData> mode14 = new RangeEnabledObservableCollection<SettingData>();
+        private RangeEnabledObservableCollection<SettingData> mode15 = new RangeEnabledObservableCollection<SettingData>();
+        private RangeEnabledObservableCollection<SettingData> motor1 = new RangeEnabledObservableCollection<SettingData>();
 
         private List<SettingData> fan = new List<SettingData>();
-        private List<SettingData> fan1 = new List<SettingData>();
+        private RangeEnabledObservableCollection<SettingData> fan1 = new RangeEnabledObservableCollection<SettingData>();
         private List<byte> receivedData = new List<byte>();
+        private ConfigFileManagement management;
 
         public ParameterWindow(SerialPort port, OneChannelValueDetail detail)
         {
@@ -52,15 +56,30 @@ namespace SmartCaraTest
             this.port = port;
             oneChannel = detail;
             Initialize2();
-            
+            InitializeSetting();
+            management = new ConfigFileManagement();
+            SetList();
         }
 
         public ParameterWindow()
         {
             InitializeComponent();
-            //Initialize();
-        }       
+            InitializeSetting();
+            management = new ConfigFileManagement();
+            SetList();
+            Initialize2();
 
+            //Initialize();
+        }
+
+
+        private void InitializeSetting()
+        {
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ParameterSetting";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+        }
 
         private void Initialize2()
         {
@@ -80,31 +99,167 @@ namespace SmartCaraTest
             MicomGrid4.ItemsSource = getModeData();
             MicomGrid5.ItemsSource = getModeData();
             MotorGrid.ItemsSource = getMotorData();
-            SetGrid1.ItemsSource = getModeData();
-            SetGrid2.ItemsSource = getModeData();
-            SetGrid3.ItemsSource = getModeData();
-            SetGrid4.ItemsSource = getModeData();
-            SetGrid5.ItemsSource = getModeData();
-            SetGrid6.ItemsSource = getMotorData();
+            mode11 = getModeData();
+            mode12 = getModeData();
+            mode13 = getModeData();
+            mode14 = getModeData();
+            mode15 = getModeData();
+            SetGrid1.ItemsSource = mode11;
+            SetGrid2.ItemsSource = mode12;
+            SetGrid3.ItemsSource = mode13;
+            SetGrid4.ItemsSource = mode14;
+            SetGrid5.ItemsSource = mode15;
+            motor1 = getMotorData();
+            fan1 = getFanData();
+            SetGrid6.ItemsSource = motor1;
             HeaterGrid.ItemsSource = getHeaterData();
             FanGrid.ItemsSource = getFanData();
             HeaterGrid2.ItemsSource = getHeaterData2();
             HeaterGridSetting.ItemsSource = getHeaterData();
-            FanGrid2.ItemsSource = getFanData();
+            FanGrid2.ItemsSource = fan1;
             HeaterGridSetting2.ItemsSource = getHeaterData2();
             ComplieGrid.ItemsSource = getCompileData(2022, 1, 1, 0);
-            Loaded += ParameterWindow_Loaded1;
-            Closed += ParameterWindow_Closed1; ;
-            RightButton.Click += RightButton_Click;
-            ReadParamButton.Click += ReadParamButton_Click;
-            ReadErrorButton.Click += (s, e) => {
-                byte[] command = Protocol.GetError(oneChannel.IsNewVersion);
-                command.PrintHex(1);
-                port.Write(command, 0, command.Length);
-            };
-            WriteParamButton.Click += WriteParamButton_Click;
-            ResetErrorButton.Click += ResetErrorButton_Click;
+            SaveButton.Click += SaveButton_Click;
+            if (port != null)
+            {
+                Loaded += ParameterWindow_Loaded1;
+                Closed += ParameterWindow_Closed1; ;
+                RightButton.Click += RightButton_Click;
+                ReadParamButton.Click += ReadParamButton_Click;
+                ReadErrorButton.Click += (s, e) =>
+                {
+                    byte[] command = Protocol.GetError(oneChannel.IsNewVersion);
+                    command.PrintHex(1);
+                    port.Write(command, 0, command.Length);
+                };
+                WriteParamButton.Click += WriteParamButton_Click;
+                ResetErrorButton.Click += ResetErrorButton_Click;
+            }
 
+        }
+
+        private void ListDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            ListBoxItem item = sender as ListBoxItem;
+            FileName.Text = item.Content.ToString();
+            SettingItem setting = management.ReadFromFile(item.Content.ToString());
+            mode11.Clear();
+            mode12.Clear();
+            mode13.Clear();
+            mode14.Clear();
+            mode15.Clear();
+            motor1.Clear();
+            fan1.Clear();
+            foreach (SectionItem section in setting.mode1)
+            {
+                mode11.Add(new SettingData() { Name = section.Name, Value = section.Value1, Value2 = section.Value2 });
+            }
+            foreach (SectionItem section in setting.mode2)
+            {
+                mode12.Add(new SettingData() { Name = section.Name, Value = section.Value1, Value2 = section.Value2 });
+            }
+            foreach (SectionItem section in setting.mode3)
+            {
+                mode13.Add(new SettingData() { Name = section.Name, Value = section.Value1, Value2 = section.Value2 });
+            }
+            foreach (SectionItem section in setting.mode4)
+            {
+                mode14.Add(new SettingData() { Name = section.Name, Value = section.Value1, Value2 = section.Value2 });
+            }
+            foreach (SectionItem section in setting.mode5)
+            {
+                mode15.Add(new SettingData() { Name = section.Name, Value = section.Value1, Value2 = section.Value2 });
+            }
+            foreach (SectionItem section in setting.motor)
+            {
+                motor1.Add(new SettingData() { Name = section.Name, Value = section.Value1, Value2 = section.Value2 });
+            }
+            foreach (SectionItem section in setting.fan)
+            {
+                fan1.Add(new SettingData() { Name = section.Name, Value = section.Value1, Value2 = section.Value2 });
+            }
+        }
+
+
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+
+            string name = DateTime.Now.ToString("mm_ss_fff");
+            management.CreateConfig(name, GetSettingSectionData());
+            SetList();
+        }
+
+        private void SetList()
+        {
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ParameterSetting";
+            DirectoryInfo info = new DirectoryInfo(path);
+            if (files == null)
+                files = new List<string>();
+            files.Clear();
+            foreach (FileInfo file in info.GetFiles())
+            {
+                files.Add(file.Name.Replace(".config", ""));
+            }
+            FileList.ItemsSource = files;
+            FileList.Items.Refresh();
+        }
+
+        private SettingItem GetSettingSectionData()
+        {
+            SettingItem items = null;
+            List<SectionItem> section1 = new List<SectionItem>();
+            List<SectionItem> section2 = new List<SectionItem>();
+            List<SectionItem> section3 = new List<SectionItem>();
+            List<SectionItem> section4 = new List<SectionItem>();
+            List<SectionItem> section5 = new List<SectionItem>();
+            List<SectionItem> section6 = new List<SectionItem>();
+            List<SectionItem> section7 = new List<SectionItem>();
+            int index = 0;
+            foreach (SettingData setting in mode11)
+            {
+                section1.Add(new SectionItem() { Name = setting.Name, Index = index.ToString(), Value1 = setting.Value, Value2 = setting.Value2 });
+                index++;
+            }
+            index = 0;
+            foreach (SettingData setting in mode12)
+            {
+                section2.Add(new SectionItem() { Name = setting.Name, Index = index.ToString(), Value1 = setting.Value, Value2 = setting.Value2 });
+                index++;
+            }
+            index = 0;
+            foreach (SettingData setting in mode13)
+            {
+                section3.Add(new SectionItem() { Name = setting.Name, Index = index.ToString(), Value1 = setting.Value, Value2 = setting.Value2 });
+                index++;
+            }
+            index = 0;
+            foreach (SettingData setting in mode14)
+            {
+                section4.Add(new SectionItem() { Name = setting.Name, Index = index.ToString(), Value1 = setting.Value, Value2 = setting.Value2 });
+                index++;
+            }
+            index = 0;
+            foreach (SettingData setting in mode15)
+            {
+                section5.Add(new SectionItem() { Name = setting.Name, Index = index.ToString(), Value1 = setting.Value, Value2 = setting.Value2 });
+                index++;
+            }
+            index = 0;
+            foreach (SettingData setting in motor1)
+            {
+                section6.Add(new SectionItem() { Name = setting.Name, Index = index.ToString(), Value1 = setting.Value, Value2 = setting.Value2 });
+                index++;
+            }
+            index = 0;
+            foreach (SettingData setting in fan1)
+            {
+                section7.Add(new SectionItem() { Name = setting.Name, Index = index.ToString(), Value1 = setting.Value, Value2 = setting.Value2 });
+                index++;
+            }
+
+            items = new SettingItem() { mode1 = section1, mode2 = section2, mode3 = section3, mode4 = section4, mode5 = section5, motor = section6, fan = section7 };
+            return items;
         }
 
         private void WriteParamButton_Click(object sender, RoutedEventArgs e)
@@ -132,8 +287,8 @@ namespace SmartCaraTest
             port.Write(command, 0, command.Length);
         }
 
-        
-        
+
+
 
         private void ResetErrorButton_Click(object sender, RoutedEventArgs e)
         {
@@ -150,10 +305,10 @@ namespace SmartCaraTest
             if (port != null)
             {
                 port.Write(command, 0, command.Length);
-            }            
+            }
         }
 
-       
+
 
         private void ReadParamButton_Click(object sender, RoutedEventArgs e)
         {
@@ -524,23 +679,23 @@ namespace SmartCaraTest
 
 
             ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
-            list.Add(new SettingData() { Name = "에러 내용"});
+            list.Add(new SettingData() { Name = "에러 내용" });
             list.Add(new SettingData() { Name = "운전 모드", Value = runmode0, Value2 = runmode1, Value3 = runmode2, Value4 = runmode3, Value5 = runmode4 });
             list.Add(new SettingData() { Name = "히터 온도", Value = heaterTemp0, Value2 = heaterTemp1, Value3 = heaterTemp2, Value4 = heaterTemp3, Value5 = heaterTemp4 });
             list.Add(new SettingData() { Name = "히터 오프 타임", Value = heaterofftime0, Value2 = heaterofftime1, Value3 = heaterofftime2, Value4 = heaterofftime3, Value5 = heaterofftime4 });
             list.Add(new SettingData() { Name = "배기 온도", Value = exhaustTemp0, Value2 = exhaustTemp1, Value3 = exhaustTemp2, Value4 = exhaustTemp3, Value5 = exhaustTemp4 });
             list.Add(new SettingData() { Name = "열풍 온도", Value = hotWindTemp0, Value2 = hotWindTemp1, Value3 = hotWindTemp2, Value4 = hotWindTemp3, Value5 = hotWindTemp4 });
             list.Add(new SettingData() { Name = "열풍 On Time", Value = hotWindOnTime0, Value2 = hotWindOnTime1, Value3 = hotWindOnTime2, Value4 = hotWindOnTime3, Value5 = hotWindOnTime4 });
-            list.Add(new SettingData() { Name = "운전 횟수" , Value = timesInt});
-            Dispatcher.BeginInvoke(new Action(() => 
+            list.Add(new SettingData() { Name = "운전 횟수", Value = timesInt });
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 ErrorGrid.ItemsSource = list;
             }));
         }
 
-        private ObservableCollection<SettingData> getModeData()
+        private RangeEnabledObservableCollection<SettingData> getModeData()
         {
-            ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
+            RangeEnabledObservableCollection<SettingData> list = new RangeEnabledObservableCollection<SettingData>();
             list.Add(new SettingData() { Name = "ON TIME CW" });
             list.Add(new SettingData() { Name = "OFF TIME CW" });
             list.Add(new SettingData() { Name = "ON TIME CCW" });
@@ -552,9 +707,9 @@ namespace SmartCaraTest
             return list;
         }
 
-        private ObservableCollection<SettingData> getMotorData()
+        private RangeEnabledObservableCollection<SettingData> getMotorData()
         {
-            ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
+            RangeEnabledObservableCollection<SettingData> list = new RangeEnabledObservableCollection<SettingData>();
             list.Add(new SettingData() { Name = "이물질 감지 시간" });
             list.Add(new SettingData() { Name = "이물질 감지 전류" });
             list.Add(new SettingData() { Name = "이물질 감지 횟수" });
@@ -575,25 +730,25 @@ namespace SmartCaraTest
             return list;
         }
 
-        private ObservableCollection<SettingData> getFanData()
+        private RangeEnabledObservableCollection<SettingData> getFanData()
         {
-            ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
+            RangeEnabledObservableCollection<SettingData> list = new RangeEnabledObservableCollection<SettingData>();
             list.Add(new SettingData() { Name = "배기 FAN 대기 온도" });
             list.Add(new SettingData() { Name = "배기 FAN 운전 온도" });
             return list;
         }
 
-        private ObservableCollection<SettingData> getHeaterData2()
+        private RangeEnabledObservableCollection<SettingData> getHeaterData2()
         {
-            ObservableCollection<SettingData> list = new ObservableCollection<SettingData>();
+            RangeEnabledObservableCollection<SettingData> list = new RangeEnabledObservableCollection<SettingData>();
             list.Add(new SettingData() { Name = "열풍 FAN SPEED" });
             list.Add(new SettingData() { Name = "열풍 히터 온도" });
             return list;
         }
 
-        private ObservableCollection<CompileData> getCompileData(int year, int month, int day, int ver)
+        private RangeEnabledObservableCollection<CompileData> getCompileData(int year, int month, int day, int ver)
         {
-            ObservableCollection<CompileData> list = new ObservableCollection<CompileData>();
+            RangeEnabledObservableCollection<CompileData> list = new RangeEnabledObservableCollection<CompileData>();
             list.Add(new CompileData { Year = year, Month = month, Day = day, Ver = ver });
             return list;
         }

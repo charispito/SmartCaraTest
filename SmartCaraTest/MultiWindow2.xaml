@@ -32,7 +32,7 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="150"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="5" x:Name="Version" FontSize="16" Content="Exit"/>
+            <Button Grid.Column="5" x:Name="Version" FontSize="16" Content="Exit" Visibility="Collapsed"/>
         </Grid>
         <controls:ChannelItem Grid.Row="2" Grid.Column="1" x:Name="Item1"/>
         <controls:ChannelItem Grid.Row="2" Grid.Column="2" x:Name="Item2"/>

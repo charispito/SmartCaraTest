@@ -35,8 +35,8 @@
             <Label Grid.Column="5" x:Name="Version" FontSize="16"/>
             <Button Grid.Column="4" x:Name="StopButton" Width="100" Content="정지"/>
             <Button Grid.Column="3" x:Name="StartButton" Width="100" Content="시작" Margin="10, 0"/>
-            <TextBox x:Name="FileNameBox" VerticalContentAlignment="Center" Grid.Column="2" Width="700" BorderBrush="Black" BorderThickness="1" Margin="10, 0"/>
-            <Label Grid.Column="1" Content="Save File Name" FontSize="16"/>
+            <TextBox Visibility="Hidden" x:Name="FileNameBox" VerticalContentAlignment="Center" Grid.Column="2" Width="700" BorderBrush="Black" BorderThickness="1" Margin="10, 0"/>
+            <Label Visibility="Hidden" Grid.Column="1" Content="Save File Name" FontSize="16"/>
         </Grid>
         <controls:ChannelItem Grid.Row="2" Grid.Column="1" x:Name="Item1"/>
         <controls:ChannelItem Grid.Row="2" Grid.Column="2" x:Name="Item2"/>
