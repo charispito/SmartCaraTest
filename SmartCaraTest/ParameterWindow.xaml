@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartCaraTest"
         mc:Ignorable="d"
-        Title="ParameterWindow" Height="900" Width="1600" SizeToContent="WidthAndHeight">
+        Title="파라미터 설정" Height="900" Width="1600" SizeToContent="WidthAndHeight">
     <Window.Resources>
         <Style TargetType="{x:Type Border}">
             <Setter Property="Background" Value="Bisque" />
@@ -163,7 +163,7 @@
             </Grid.RowDefinitions>
             <Label Content="운전" FontWeight="SemiBold" FontSize="18"/>
             <Label Grid.Row="1" Content="정상 운전" FontSize="15" Margin="0, 10" FontWeight="Black"/>
-            <Label Grid.Row="2" BorderThickness="1" BorderBrush="Black" FontSize="17" Content="0" Margin="5, 0" HorizontalContentAlignment="Right"/>
+            <Label Grid.Row="2" x:Name="RunCount" BorderThickness="1" BorderBrush="Black" FontSize="17" Content="0" Margin="5, 0" HorizontalContentAlignment="Right"/>
             <Label Grid.Column="1" Grid.Row="2" Content="회" FontSize="17"/>
             <Button Background="Transparent" BorderBrush="Blue" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="4" Height="30" Margin="5, 10" FontSize="17" Content="READ" x:Name="ReadErrorButton"/>
             <Button Background="Transparent" BorderBrush="Red" Foreground="Red" Grid.ColumnSpan="2" Grid.Row="5" Height="30" Margin="5, 0" FontSize="17" Content="RESET" x:Name="ResetErrorButton"/>
@@ -541,7 +541,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn IsReadOnly="False"  CanUserReorder="False" Width="*" CanUserSort="False" Binding="{Binding Value}" Header="배기 온도">
+                    <DataGridTextColumn IsReadOnly="False"  CanUserReorder="False" Width="*" CanUserSort="False" Binding="{Binding Value2}" Header="배기 온도">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="{x:Type TextBlock}">
                                 <Setter Property="TextAlignment" Value="Center"/>
@@ -628,7 +628,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn IsReadOnly="False"  CanUserReorder="False" Width="*" CanUserSort="False" Binding="{Binding Value}" Header="배기 온도">
+                    <DataGridTextColumn IsReadOnly="False"  CanUserReorder="False" Width="*" CanUserSort="False" Binding="{Binding Value2}" Header="배기 온도">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="{x:Type TextBlock}">
                                 <Setter Property="TextAlignment" Value="Center"/>

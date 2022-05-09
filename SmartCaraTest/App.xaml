@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:SmartCaraTest"
              
-             StartupUri="ParameterWindow.xaml">
+             StartupUri="SelectWindow.xaml">
     <!--StartupUri="SelectWindow.xaml"-->
     <Application.Resources>
         <Style x:Key="GridStyle" TargetType="{x:Type DataGrid}">

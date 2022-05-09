@@ -16,5 +16,7 @@ namespace SmartCaraTest.setting
         public List<SectionItem> mode5 { get; set; }
         public List<SectionItem> motor { get; set; }
         public List<SectionItem> fan { get; set; }
+        public List<SectionItem> heater1 { get; set; }
+        public List<SectionItem> heater2 { get; set; }
     }
 }

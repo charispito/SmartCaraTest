@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartCaraTest"
         mc:Ignorable="d"
-        Title="MultiParameterWindow" Height="900" Width="1600" SizeToContent="WidthAndHeight">
+        Title="스마트카라" Height="900" Width="1600" SizeToContent="WidthAndHeight">
     <Window.Resources>
         <Style TargetType="{x:Type Border}">
             <Setter Property="Background" Value="Bisque" />
@@ -163,14 +163,20 @@
             </Grid.RowDefinitions>
             <Label Content="운전" FontWeight="SemiBold" FontSize="18"/>
             <Label Grid.Row="1" Content="정상 운전" FontSize="15" Margin="0, 10" FontWeight="Black"/>
-            <Label Grid.Row="2" BorderThickness="1" BorderBrush="Black" FontSize="17" Content="0" Margin="5, 0" HorizontalContentAlignment="Right"/>
+            <Label x:Name="RunCount" Grid.Row="2" BorderThickness="1" BorderBrush="Black" FontSize="17" Content="0" Margin="5, 0" HorizontalContentAlignment="Right"/>
             <Label Grid.Column="1" Grid.Row="2" Content="회" FontSize="17"/>
             <Button Background="Transparent" BorderBrush="Blue" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="4" Height="30" Margin="5, 10" FontSize="17" Content="READ" x:Name="ReadErrorButton"/>
             <Button Background="Transparent" BorderBrush="Red" Foreground="Red" Grid.ColumnSpan="2" Grid.Row="5" Height="30" Margin="5, 0" FontSize="17" Content="RESET" x:Name="ResetErrorButton"/>
         </Grid>
         <Label Grid.Row="1" Grid.Column="5" Content="파일" FontSize="18" FontWeight="SemiBold"/>
-        <TextBox Grid.Row="2" Grid.Column="5" Margin="0,5" FontSize="14" BorderBrush="Black"/>
-        <ListBox Grid.Row="3" Grid.Column="5" Grid.RowSpan="4" BorderBrush="Black"/>
+        <TextBox x:Name="FileName" Grid.Row="2" Grid.Column="5" Margin="0,5" FontSize="14" BorderBrush="Black"/>
+        <ListBox x:Name="FileList" Grid.Row="3" Grid.Column="5" Grid.RowSpan="4" BorderBrush="Black">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="MouseDoubleClick" Handler="ListDoubleClick"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
         <Grid Grid.Row="7" Grid.Column="5" Margin="0, 10, 0, 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -179,9 +185,9 @@
                 <ColumnDefinition Width="10"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Button Content="저장"/>
-            <Button Grid.Column="2" Height="25" Content="삭제"/>
-            <Button Grid.Column="4" Content="새로고침"/>
+            <Button x:Name="SaveButton" Content="저장"/>
+            <Button x:Name="DeleteButton" Grid.Column="2" Height="25" Content="삭제"/>
+            <Button x:Name="RefreshButton" Grid.Column="4" Content="새로고침"/>
         </Grid>
         <Label Grid.Row="4" Grid.Column="1" FontSize="18" FontWeight="SemiBold" Content="Micom Parameter" Margin="0, 10, 0, 0"/>
         <Grid Grid.Row="5" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="3" ShowGridLines="False">
@@ -535,7 +541,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn IsReadOnly="False"  CanUserReorder="False" Width="*" CanUserSort="False" Binding="{Binding Value}" Header="배기 온도">
+                    <DataGridTextColumn IsReadOnly="False"  CanUserReorder="False" Width="*" CanUserSort="False" Binding="{Binding Value2}" Header="배기 온도">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="{x:Type TextBlock}">
                                 <Setter Property="TextAlignment" Value="Center"/>
@@ -622,7 +628,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn IsReadOnly="False"  CanUserReorder="False" Width="*" CanUserSort="False" Binding="{Binding Value}" Header="배기 온도">
+                    <DataGridTextColumn IsReadOnly="False"  CanUserReorder="False" Width="*" CanUserSort="False" Binding="{Binding Value2}" Header="배기 온도">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="{x:Type TextBlock}">
                                 <Setter Property="TextAlignment" Value="Center"/>

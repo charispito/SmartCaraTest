@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartCaraTest" xmlns:controls="clr-namespace:SmartCaraTest.controls"
         mc:Ignorable="d"
-        Title="MultiWindow1" Height="900" Width="1850" WindowStartupLocation="CenterScreen">
+        Title="스마트카라" Height="900" Width="1850" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>

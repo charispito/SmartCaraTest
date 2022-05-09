@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartCaraTest"
         mc:Ignorable="d"
-        Title="SelectWindow" Height="400" Width="600">
+        Title="검사 모드 선택" Height="400" Width="600">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20"/>

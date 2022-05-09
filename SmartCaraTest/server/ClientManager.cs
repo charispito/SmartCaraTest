@@ -53,7 +53,10 @@ namespace SmartCaraTest.util
                     int result = await clientdata.client.GetStream().ReadAsync(clientdata.readByteParameterData, 0, 70);
                     byte[] slice = clientdata.readByteParameterData.Slice(result);
                     Array.Clear(clientdata.readByteParameterData, 0, result);
-                    Console.WriteLine("ALL: {0}, Length: {1} Data: {2}", clientdata.readCompleteData.Count, result, slice.byteToString());
+                    if (clientdata.channel.run)
+                    {
+                        Console.WriteLine("ALL: {0}, Length: {1} Data: {2}", clientdata.readCompleteData.Count, result, slice.byteToString());
+                    }
                     if (result > 0)
                     {
                         if (clientdata.readCompleteData.Count == 0)
@@ -72,7 +75,7 @@ namespace SmartCaraTest.util
                                         if (slice.Length > 3 && clientdata.readCompleteData[3] == clientdata.readCompleteData.Count)
                                         {
                                             //완료
-                                            Console.WriteLine("complete1: {0}", clientdata.readCompleteData.ToArray().byteToString());
+                                            //Console.WriteLine("complete1: {0}", clientdata.readCompleteData.ToArray().byteToString());
                                             clientdata.channel.Dispatcher.Invoke(new Action(() => {
                                                 switch (clientdata.readCompleteData[2])
                                                 {
@@ -116,7 +119,7 @@ namespace SmartCaraTest.util
                                         if (slice.Length > 3 && clientdata.readCompleteData[3] == clientdata.readCompleteData.Count)
                                         {
                                             //완료
-                                            Console.WriteLine("complete2: {0}", clientdata.readCompleteData.ToArray().byteToString());
+                                            //Console.WriteLine("complete2: {0}", clientdata.readCompleteData.ToArray().byteToString());
                                             clientdata.channel.Dispatcher.Invoke(new Action(() => {
                                                 switch (clientdata.readCompleteData[2])
                                                 {
@@ -165,7 +168,7 @@ namespace SmartCaraTest.util
                                         if (clientdata.readCompleteData.Last() == 0x34)
                                         {
                                             //완료
-                                            Console.WriteLine("complete3: {0}", clientdata.readCompleteData.ToArray().byteToString());
+                                            //Console.WriteLine("complete3: {0}", clientdata.readCompleteData.ToArray().byteToString());
                                             clientdata.channel.Dispatcher.Invoke(new Action(() => {
                                                 switch (clientdata.readCompleteData[2])
                                                 {
@@ -216,7 +219,7 @@ namespace SmartCaraTest.util
                                         if (clientdata.readCompleteData.Last() == 0xEF)
                                         {
                                             //완료
-                                            Console.WriteLine("complete4: {0}", clientdata.readCompleteData.ToArray().byteToString());
+                                            //Console.WriteLine("complete4: {0}", clientdata.readCompleteData.ToArray().byteToString());
                                             clientdata.channel.Dispatcher.Invoke(new Action(() => {
                                                 switch (clientdata.readCompleteData[2])
                                                 {
@@ -306,17 +309,17 @@ namespace SmartCaraTest.util
                     {
                         RemoveClient(data);
                     }
-                    if (!data.channel.Response)
-                    {
-                        data.channel.NonResponse++;
-                        if (data.channel.NonResponse > 20)
-                        {
-                            data.channel.Dispatcher.BeginInvoke(new Action(() =>
-                            {
-                                data.channel.Item23.cont.Content = "응답없음";
-                            }));
-                        }
-                    }
+                    //if (!data.channel.Response)
+                    //{
+                    //    data.channel.NonResponse++;
+                    //    if (data.channel.NonResponse > 20)
+                    //    {
+                    //        data.channel.Dispatcher.BeginInvoke(new Action(() =>
+                    //        {
+                    //            data.channel.Item23.cont.Content = "응답없음";
+                    //        }));
+                    //    }
+                    //}
                 }
                 catch(Exception ex)
                 {

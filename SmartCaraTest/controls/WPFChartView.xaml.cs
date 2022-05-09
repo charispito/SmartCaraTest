@@ -171,7 +171,7 @@ namespace SmartCaraTest.controls
             axis.Foreground = Brushes.Red;
             axis.Minimum = 0;
             axis.Maximum = 200;
-            axis.Location = AxisLocation.Auto;
+            axis.Location = AxisLocation.Left;
             axis.Interval = 20;
             series1.DependentRangeAxis = axis;
             setStyle(series1, Brushes.Green);

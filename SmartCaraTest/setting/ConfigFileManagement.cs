@@ -96,8 +96,24 @@ namespace SmartCaraTest.data
                 SectionItem sectionItem = new SectionItem() { Index = element.Index, Name = element.Name, Value1 = element.Value1, Value2 = element.Value2 };
                 fan.Add(sectionItem);
             }
+            SettingSection section8 = (SettingSection)config.GetSection("Heater1");
+            List<SectionItem> heater1 = new List<SectionItem>();
+            foreach (object key in section8.Instance.baseGetAllKeys())
+            {
+                Setting element = section8.Instance.baseGet(key.ToString());
+                SectionItem sectionItem = new SectionItem() { Index = element.Index, Name = element.Name, Value1 = element.Value1, Value2 = element.Value2 };
+                heater1.Add(sectionItem);
+            }
+            SettingSection section9 = (SettingSection)config.GetSection("Heater2");
+            List<SectionItem> heater2 = new List<SectionItem>();
+            foreach (object key in section9.Instance.baseGetAllKeys())
+            {
+                Setting element = section9.Instance.baseGet(key.ToString());
+                SectionItem sectionItem = new SectionItem() { Index = element.Index, Name = element.Name, Value1 = element.Value1, Value2 = element.Value2 };
+                heater2.Add(sectionItem);
+            }
 
-            item = new SettingItem() { mode1 = mode1, mode2 = mode2, mode3 = mode3, mode4 = mode4, mode5 = mode5, motor = motor, fan = fan };
+            item = new SettingItem() { mode1 = mode1, mode2 = mode2, mode3 = mode3, mode4 = mode4, mode5 = mode5, motor = motor, fan = fan, heater1 = heater1, heater2 = heater2 };
             return item;
         }
 
@@ -120,6 +136,8 @@ namespace SmartCaraTest.data
             SettingSection section5 = new SettingSection();
             SettingSection section6 = new SettingSection();
             SettingSection section7 = new SettingSection();
+            SettingSection section8 = new SettingSection();
+            SettingSection section9 = new SettingSection();
 
             foreach (SectionItem sectionItem in item.mode1)
             {                
@@ -169,6 +187,20 @@ namespace SmartCaraTest.data
                 index6++;
             }
             config.Sections.Add("Fan", section7);
+            int index7 = 1;
+            foreach (SectionItem sectionItem in item.heater1)
+            {
+                section8.Instance.baseAdd(new Setting() { Index = index7.ToString(), Name = sectionItem.Name, Value1 = sectionItem.Value1, Value2 = sectionItem.Value2 });
+                index7++;
+            }
+            config.Sections.Add("Heater1", section8);
+            int index8 = 1;
+            foreach (SectionItem sectionItem in item.heater2)
+            {
+                section9.Instance.baseAdd(new Setting() { Index = index8.ToString(), Name = sectionItem.Name, Value1 = sectionItem.Value1, Value2 = sectionItem.Value2 });
+                index8++;
+            }
+            config.Sections.Add("Heater2", section9);
             config.Save();
         }
     }

@@ -165,10 +165,21 @@ namespace SmartCaraTest.controls
             });
         }
 
+        public void CloseWriter()
+        {
+            if (streamWriter != null)
+            {
+                streamWriter.Close();
+            }
+        }
+
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             run = false;
-            streamWriter.Close();
+            if(streamWriter != null)
+            {
+                streamWriter.Close();
+            }
             chartView.ItemRun[ItemIndex] = false;
             byte[] command = null;
             if (IsNewVersion)
@@ -194,7 +205,7 @@ namespace SmartCaraTest.controls
             string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ChannelData";
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
-            string file = DateTime.Now.ToString("CH" + _Channel + "_yyyy년MM월dd일_HH시mm분ss초") + ".csv";
+            string file = $"Ch{_Channel}" + DateTime.Now.ToString("_yyyy년MM월dd일_HH시mm분ss초") + ".csv";
             streamWriter = new StreamWriter(new FileStream(Path.Combine(path, file), FileMode.CreateNew), System.Text.Encoding.Default);
             initFile();
             if (IsNewVersion)
@@ -246,7 +257,7 @@ namespace SmartCaraTest.controls
 
         public void SetView(byte[] data)
         {
-            Console.WriteLine("set");
+            //Console.WriteLine("set");
             if (data.Length < 57)
                 return;
             if (data[3] != 57)
@@ -265,8 +276,8 @@ namespace SmartCaraTest.controls
                 if (data.Last() != 0xEF)
                     return;
             }
-            PrintCommand(data);
-            Console.WriteLine("view");
+            //PrintCommand(data);
+            //Console.WriteLine("view");
             int motorRun = data[5];
             int heateroff = data[7]; //히터 오프타임
             int heatertemp = data[6]; //히터 온도
@@ -388,6 +399,7 @@ namespace SmartCaraTest.controls
             Item26.cont.Content = (mode + 1).ToString();
             if (run)
             {
+
                 if (Item1Check.IsChecked.Value)
                 {
                     list1.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heatertemp));
@@ -427,6 +439,8 @@ namespace SmartCaraTest.controls
         {
             switch (model)
             {
+                case 0:
+                    return "PCS 400";
                 case 1:
                     return "PCS 500";
                 case 2:
