@@ -217,7 +217,7 @@ namespace SmartCaraTest
                             seriesList[14] = index;
                             Chart.setLegend(index, "CH " + Item1.Channel + " 히터오프타임");
                             Chart.seriesList[index].ItemsSource = Item1.list5;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -431,7 +431,7 @@ namespace SmartCaraTest
                             seriesList[24] = index;
                             Chart.setLegend(index, "CH " + Item2.Channel + " 히터오프타임");
                             Chart.seriesList[index].ItemsSource = Item2.list5;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -646,7 +646,7 @@ namespace SmartCaraTest
                             seriesList[34] = index;
                             Chart.setLegend(index, "CH " + Item3.Channel + " 히터오프타임");
                             Chart.seriesList[index].ItemsSource = Item3.list5;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -860,7 +860,7 @@ namespace SmartCaraTest
                             seriesList[44] = index;
                             Chart.setLegend(index, "CH " + Item4.Channel + " 히터오프타임");
                             Chart.seriesList[index].ItemsSource = Item4.list5;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {

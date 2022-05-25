@@ -32,6 +32,7 @@
                 <charting:Chart.PlotAreaStyle>
                     <Style TargetType="Grid">
                         <Setter Property="Background" Value="White"/>
+                        <Setter Property="MinWidth" Value="800"/>
                     </Style>
                 </charting:Chart.PlotAreaStyle>
             </charting:Chart>
@@ -54,21 +55,21 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Label Background="Green" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Background="Red" Height="10" Width="10" VerticalAlignment="Center"/>
                 <Label Grid.Column="1" FontSize="13" Name="series1Legend"/>
-                <Label Background="Red" Grid.Column="2" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Background="Blue" Grid.Column="2" Height="10" Width="10" VerticalAlignment="Center"/>
                 <Label Grid.Column="3" FontSize="13" Name="series2Legend"/>
-                <Label Background="Blue" Grid.Column="4" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Background="#FFD0AF12" Grid.Column="4" Height="10" Width="10" VerticalAlignment="Center"/>
                 <Label Grid.Column="5" FontSize="13" Name="series3Legend"/>
-                <Label Background="Magenta" Grid.Column="6" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Background="DeepSkyBlue" Grid.Column="6" Height="10" Width="10" VerticalAlignment="Center"/>
                 <Label Grid.Column="7" FontSize="13" Name="series4Legend"/>
-                <Label Background="Brown" Grid.Column="8" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Background="Magenta" Grid.Column="8" Height="10" Width="10" VerticalAlignment="Center"/>
                 <Label Grid.Column="9" FontSize="13" Name="series5Legend"/>
-                <Label Background="DarkOrchid" Grid.Column="10" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Background="SpringGreen" Grid.Column="10" Height="10" Width="10" VerticalAlignment="Center"/>
                 <Label Grid.Column="11" FontSize="13" Name="series6Legend"/>
-                <Label Background="SpringGreen" Grid.Column="12" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Background="Green" Grid.Column="12" Height="10" Width="10" VerticalAlignment="Center"/>
                 <Label Grid.Column="13" FontSize="13" Name="series7Legend"/>
-                <Label Background="SteelBlue" Grid.Column="14" Height="10" Width="10" VerticalAlignment="Center"/>
+                <Label Background="Black" Grid.Column="14" Height="10" Width="10" VerticalAlignment="Center"/>
                 <Label Grid.Column="15" FontSize="13" Name="series8Legend"/>
             </Grid>
         </Grid>

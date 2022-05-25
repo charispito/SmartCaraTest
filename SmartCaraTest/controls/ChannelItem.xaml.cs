@@ -19,7 +19,7 @@ namespace SmartCaraTest.controls
         public bool Response = false;
         public int number = 1;
         public bool IsNewVersion = false;
-        public int off_sum = 0;
+        public float off_sum = 0;
         public int air_sum = 0;
         public int NonResponse { get; set; } = 0;
         public MultiParameterWindow ParameterWindow { get; set; }
@@ -112,8 +112,21 @@ namespace SmartCaraTest.controls
             number++;
             air_sum += data.air_temp;
             off_sum += data.heater_off_time;
-            streamWriter.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", data.date, data.mode, data.remain_time, data.heater_temp, data.heater_off_time,
+            if(streamWriter != null)
+            {
+                streamWriter.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", data.date, data.mode, data.remain_time, data.heater_temp, data.heater_off_time,
                 data.air_temp, data.fan_speed, data.hot_air_temp, data.hot_air_ontime, data.motor, data.motor_current, number, off_sum, (double)(off_sum / (double)number), air_sum, (double)(air_sum / (double)number));
+            }
+            else
+            {
+                string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ChannelData";
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+                string file = $"Ch{_Channel}" + DateTime.Now.ToString("_yyyy년MM월dd일_HH시mm분ss초") + ".csv";
+                streamWriter = new StreamWriter(new FileStream(Path.Combine(path, file), FileMode.CreateNew), System.Text.Encoding.Default);
+                initFile();
+            }
+            
         }
 
         public ChannelItem()
@@ -155,7 +168,11 @@ namespace SmartCaraTest.controls
         }
 
         private void ParameterButton_Click(object sender, RoutedEventArgs e)
-        {            
+        {
+            if (run)
+            {
+                return;
+            }
             Task.Delay(200).ContinueWith(_ => 
             {
                 Dispatcher.BeginInvoke(new Action(() => {
@@ -325,6 +342,7 @@ namespace SmartCaraTest.controls
             int[] binary1 = Enumerable.Range(1, 8).Select(i => error1 / (1 << (8 - i)) % 2).ToArray();
             Array.Reverse(binary0);
             Array.Reverse(binary1);
+            float heateroffTime = (float)(heateroff / 10.0f);
             //5 = 0101 RUN CCW
             //9 = 1001 RUN STOP
             //3 = 0011 RUN CW
@@ -365,7 +383,7 @@ namespace SmartCaraTest.controls
             {
                 ReadData read = new ReadData()
                 {
-                    date = now,
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                     mode = mode + 1,
                     remain_time = time,
                     heater_temp = heatertemp,
@@ -379,8 +397,9 @@ namespace SmartCaraTest.controls
                 };
                 WriteFile(read);
             }
-            
 
+
+            
             Item21.cont.Content = getModelName(data[48]);
             Item22.cont.Content = micom;
             Item24.cont.Content = time;
@@ -389,7 +408,7 @@ namespace SmartCaraTest.controls
             Item3.cont.Content = airheatertemp + "ºC";
             Item5.cont.Content = fan_duty + "%";
             Item15.cont.Content = hot_air_fan_duty + "%";
-            Item11.cont.Content = heateroff;
+            Item11.cont.Content = heateroffTime + "ms";
             Item12.cont.Content = airaverage + "ºC";
             Item13.cont.Content = heaterduty;
             Item14.cont.Content = currnetDouble + "A";
@@ -397,40 +416,41 @@ namespace SmartCaraTest.controls
             Item4.Title = getMotorState(motorRun);
             Item4.cont.Content = motorRunTime.ToString() + "s";
             Item26.cont.Content = (mode + 1).ToString();
+            DateTime now = DateTime.Now;
             if (run)
             {
 
                 if (Item1Check.IsChecked.Value)
                 {
-                    list1.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heatertemp));
+                    list1.Add(new KeyValuePair<DateTime, int>(now, heatertemp));
                 }
                 if (Item2Check.IsChecked.Value)
                 {
-                    list2.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airtemp));
+                    list2.Add(new KeyValuePair<DateTime, int>(now, airtemp));
                 }
                 if (Item3Check.IsChecked.Value)
                 {
-                    list3.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airheatertemp));
+                    list3.Add(new KeyValuePair<DateTime, int>(now, airheatertemp));
                 }
                 if (Item4Check.IsChecked.Value)
                 {
-                    list4.Add(new KeyValuePair<DateTime, int>(DateTime.Now, getMotorValue(motorRun)));
+                    list4.Add(new KeyValuePair<DateTime, int>(now, getMotorValue(motorRun)));
                 }
                 if (Item5Check.IsChecked.Value)
                 {
-                    list5.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heateroff));
+                    list5.Add(new KeyValuePair<DateTime, int>(now, heateroff));
                 }
                 if (Item6Check.IsChecked.Value)
                 {
-                    list6.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airaverage));
+                    list6.Add(new KeyValuePair<DateTime, int>(now, airaverage));
                 }
                 if (Item7Check.IsChecked.Value)
                 {
-                    list7.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heaterduty));
+                    list7.Add(new KeyValuePair<DateTime, int>(now, heaterduty));
                 }
                 if (Item8Check.IsChecked.Value)
                 {
-                    list8.Add(new KeyValuePair<DateTime, double>(DateTime.Now, currnetDouble));
+                    list8.Add(new KeyValuePair<DateTime, double>(now, currnetDouble));
                 }
             }
         }

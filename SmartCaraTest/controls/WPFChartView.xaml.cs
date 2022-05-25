@@ -32,6 +32,7 @@ namespace SmartCaraTest.controls
         public List<LineSeries> seriesList = new List<LineSeries>();
         public List<LinearAxis> Yaxis = new List<LinearAxis>();
         private DateTimeAxis Time = new DateTimeAxis();
+        private LinearAxis MinutesAxis = new LinearAxis();
 
         public WPFChartView(int channel)
         {
@@ -42,26 +43,27 @@ namespace SmartCaraTest.controls
             LinearAxis axis = new LinearAxis();
             Style verticalStyle = new Style(typeof(NumericAxisLabel));
             verticalStyle.Setters.Add(new Setter(NumericAxisLabel.FontSizeProperty, 12.5));
-            for(int i = 1; i < 5; i++)
+            for (int i = 1; i < 5; i++)
             {
                 ItemRun[i] = false;
             }
             axis.Orientation = AxisOrientation.Y;
             axis.Foreground = Brushes.Red;
+            axis.ShowGridLines = true;
             axis.Minimum = 0;
             axis.Maximum = 200;
             axis.Location = AxisLocation.Auto;
             axis.Interval = 20;
             series1.DependentRangeAxis = axis;
 
-            setStyle(series1, Brushes.Green);
-            setStyle(series2, Brushes.Red);
-            setStyle(series3, Brushes.Blue);
-            setStyle(series4, Brushes.Magenta);
-            setStyle(series5, Brushes.Brown);
-            setStyle(series6, Brushes.DarkOrchid);
-            setStyle(series7, Brushes.SpringGreen);
-            setStyle(series8, Brushes.SteelBlue);
+            setStyle(series1, Brushes.Red);
+            setStyle(series2, Brushes.Blue);
+            setStyle(series3, new SolidColorBrush(Color.FromRgb(0xD0, 0xAF, 0x12)));
+            setStyle(series4, Brushes.DeepSkyBlue);
+            setStyle(series5, Brushes.Magenta);
+            setStyle(series6, Brushes.SpringGreen);
+            setStyle(series7, Brushes.Green);
+            setStyle(series8, Brushes.Black);
 
             LinearAxis axis2 = new LinearAxis();
             axis2.ShowGridLines = false;
@@ -79,13 +81,14 @@ namespace SmartCaraTest.controls
             axis3.Foreground = Brushes.Magenta;
             axis3.Location = AxisLocation.Left;
             axis3.Interval = 0.2;
-            
+
             axis.AxisLabelStyle = verticalStyle;
             axis2.AxisLabelStyle = verticalStyle;
             axis3.AxisLabelStyle = verticalStyle;
             Yaxis.Add(axis);
             Yaxis.Add(axis2);
             Yaxis.Add(axis3);
+            initXAxis();
         }
 
         public void setAxis(LineSeries series, int index)
@@ -127,34 +130,47 @@ namespace SmartCaraTest.controls
         public void initXAxis()
         {
             bool run = false;
-            for(int i = 1; i < 5; i++)
+            for (int i = 1; i < 5; i++)
             {
-                if(ItemRun[i])
+                if (ItemRun[i])
                     run = true;
             }
             if (run)
                 return;
             Time = new DateTimeAxis();
-            Style axisStyle = new Style(typeof(DateTimeAxisLabel));
-            axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.FontSizeProperty, 10.0));
-            axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.StringFormatProperty, "{0: HH:mm}"));
-            Time.Interval = xInterval;
-            Time.Orientation = AxisOrientation.X;
-            Time.IntervalType = DateTimeIntervalType.Minutes;
-            Time.Location = AxisLocation.Bottom;
-            Time.Minimum = DateTime.Now;
-            Time.Maximum = DateTime.Now.AddSeconds(14400);
-            Time.AxisLabelStyle = axisStyle;
-            series1.IndependentAxis = Time;
-            series2.IndependentAxis = Time;
-            series3.IndependentAxis = Time;
-            series4.IndependentAxis = Time;
-            series5.IndependentAxis = Time;
-            series6.IndependentAxis = Time;
-            series7.IndependentAxis = Time;
-            series8.IndependentAxis = Time;
+
+            MinutesAxis = new LinearAxis();
+            MinutesAxis.Orientation = AxisOrientation.X;
+            MinutesAxis.Interval = 5;
+            Style linearStyle = new Style();
+            Style gridStyle = new Style();
+            MinutesAxis.ShowGridLines = true;
+            MinutesAxis.GridLineStyle = gridStyle;
+            linearStyle.Setters.Add(new Setter(NumericAxisLabel.FontSizeProperty, 10.0));
+            linearStyle.Setters.Add(new Setter(NumericAxisLabel.StringFormatProperty, "{0: 0분}"));
+            MinutesAxis.AxisLabelStyle = linearStyle;
+            MinutesAxis.Minimum = 0;
+            MinutesAxis.Maximum = 180;
+            //Style axisStyle = new Style(typeof(DateTimeAxisLabel));
+            //axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.FontSizeProperty, 10.0));
+            //axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.StringFormatProperty, "{0: mm분}"));
+            //Time.Interval = xInterval;
+            //Time.Orientation = AxisOrientation.X;
+            //Time.IntervalType = DateTimeIntervalType.Minutes;
+            //Time.Location = AxisLocation.Bottom;
+            //Time.Minimum = DateTime.Now;
+            //Time.Maximum = DateTime.Now.AddMinutes(180);
+            //Time.AxisLabelStyle = axisStyle;
+            series1.IndependentAxis = MinutesAxis;
+            series2.IndependentAxis = MinutesAxis;
+            series3.IndependentAxis = MinutesAxis;
+            series4.IndependentAxis = MinutesAxis;
+            series5.IndependentAxis = MinutesAxis;
+            series6.IndependentAxis = MinutesAxis;
+            series7.IndependentAxis = MinutesAxis;
+            series8.IndependentAxis = MinutesAxis;
         }
-     
+
         public WPFChartView()
         {
             InitializeComponent();
@@ -174,14 +190,14 @@ namespace SmartCaraTest.controls
             axis.Location = AxisLocation.Left;
             axis.Interval = 20;
             series1.DependentRangeAxis = axis;
-            setStyle(series1, Brushes.Green);
-            setStyle(series2, Brushes.Red);
-            setStyle(series3, Brushes.Blue);
-            setStyle(series4, Brushes.Magenta);
-            setStyle(series5, Brushes.Brown);
-            setStyle(series6, Brushes.DarkOrchid);
-            setStyle(series7, Brushes.SpringGreen);
-            setStyle(series8, Brushes.SteelBlue);
+            setStyle(series1, Brushes.Red);
+            setStyle(series2, Brushes.Blue);
+            setStyle(series3, new SolidColorBrush(Color.FromRgb(0xD0, 0xAF, 0x12)));
+            setStyle(series4, Brushes.DeepSkyBlue);
+            setStyle(series5, Brushes.Magenta);
+            setStyle(series6, Brushes.SpringGreen);
+            setStyle(series7, Brushes.Green);
+            setStyle(series8, Brushes.Black);
 
 
             LinearAxis axis2 = new LinearAxis();
@@ -223,6 +239,9 @@ namespace SmartCaraTest.controls
             style.Setters.Add(new Setter(LineDataPoint.TemplateProperty, null));
             style.Setters.Add(new Setter(LineDataPoint.BackgroundProperty, color));
             series.DataPointStyle = style;
+            Style polyStyle = new Style(typeof (Polyline));
+            polyStyle.Setters.Add(new Setter(Polyline.StrokeThicknessProperty, 1.3d));
+            series.PolylineStyle = polyStyle;
         }
     }
 }

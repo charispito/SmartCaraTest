@@ -34,7 +34,7 @@
             <controls:LabeledCombobox x:Name="PortList" Title="COM"  Grid.Column="2" Margin="10, 0"/>
             <Button Grid.Column="3" Content="연결" Padding="30, 0" x:Name="ConnectButton"/>
             <Button Grid.Column="4" Content="파라미터" Padding="20, 0" Margin="20, 0" x:Name="ParameterButton" Visibility="Hidden"/>
-            <Label Grid.Column="5" Content="2022.02.01 ver 1.0.0" FontWeight="Black"/>
+            <Label Grid.Column="5" Content="2022.02.01 ver 1.0.0" FontWeight="Black" Visibility="Hidden"/>
         </Grid>
         <controls:OneChannelValueDetail x:Name="channel" Grid.Row="3" Grid.Column="1"/>
         <controls:SingleDetail x:Name="DetailView" Grid.Column="2" Grid.Row="3" Margin="20, 0, 0, 0"/>

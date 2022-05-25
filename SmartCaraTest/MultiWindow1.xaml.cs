@@ -42,6 +42,7 @@ namespace SmartCaraTest
             Item3.chartView = Chart;
             Item4.chartView = Chart;
             server = new AsyncServer(this);
+            Closed += MultiWindow1_Closed;
             StartButton.Click += (s, e) =>
             {
                 if (server.run)
@@ -84,6 +85,43 @@ namespace SmartCaraTest
                 }
                 server.run = false;
             };
+        }
+
+        private void MultiWindow1_Closed(object sender, EventArgs e)
+        {
+            if (server != null && server.run)
+            {
+                if (ClientManager.clientDic.Count > 0)
+                {
+                    Task.Run(new Action(() =>
+                    {
+                        foreach (var item in ClientManager.clientDic)
+                        {
+                            if (item.Value.client != null && item.Value.client.Connected)
+                            {
+                                item.Value.Run = false;
+                                byte[] cmd = null;
+                                if (item.Value.channel.IsNewVersion)
+                                {
+                                    cmd = Protocol.GetNewCommand(3);
+                                }
+                                else
+                                {
+                                    cmd = Protocol.GetCommand(3);
+                                }
+                                item.Value.channel.CloseWriter();
+                                item.Value.client.GetStream().Write(cmd, 0, cmd.Length);
+                                item.Value.client.Close();
+                            }
+                        }
+                    }));
+                }
+                if (server.listener != null)
+                {
+                    server.listener.Stop();
+                }
+            }
+            server.run = false;
         }
 
         public void GetParameter(int channel)
@@ -141,6 +179,7 @@ namespace SmartCaraTest
             double currnetDouble = (double)currentInt / 1000.0;
             int year = data[51];
             int month = data[52];
+            float heateroffTime = (float)(heateroff / 10.0f);
             int day = data[53];
             int version = data[54];
             string micom = $"{year}.{month}.{day}. ver {version}";
@@ -173,39 +212,40 @@ namespace SmartCaraTest
             channel.Item4.Title = getMotorState(motorRun);
             channel.Item4.cont.Content = motorRunTime.ToString() + "s";
             channel.Item26.cont.Content = (mode + 1).ToString();
+            DateTime now = DateTime.Now;
             if (channel.run)
             {
                 if (channel.Item1Check.IsChecked.Value)
                 {
-                    channel.list1.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heatertemp));
+                    channel.list1.Add(new KeyValuePair<DateTime, int>(now, heatertemp));
                 }
                 if (channel.Item2Check.IsChecked.Value)
                 {
-                    channel.list2.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airtemp));
+                    channel.list2.Add(new KeyValuePair<DateTime, int>(now, airtemp));
                 }
                 if (channel.Item3Check.IsChecked.Value)
                 {
-                    channel.list3.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airheatertemp));
+                    channel.list3.Add(new KeyValuePair<DateTime, int>(now, airheatertemp));
                 }
                 if (channel.Item4Check.IsChecked.Value)
                 {
-                    channel.list4.Add(new KeyValuePair<DateTime, int>(DateTime.Now, getMotorValue(motorRun)));
+                    channel.list4.Add(new KeyValuePair<DateTime, int>(now, getMotorValue(motorRun)));
                 }
                 if (channel.Item5Check.IsChecked.Value)
                 {
-                    channel.list5.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heateroff));
+                    channel.list5.Add(new KeyValuePair<DateTime, int>(now, heateroff));
                 }
                 if (channel.Item6Check.IsChecked.Value)
                 {
-                    channel.list6.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airaverage));
+                    channel.list6.Add(new KeyValuePair<DateTime, int>(now, airaverage));
                 }
                 if (channel.Item7Check.IsChecked.Value)
                 {
-                    channel.list7.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heaterduty));
+                    channel.list7.Add(new KeyValuePair<DateTime, int>(now, heaterduty));
                 }
                 if (channel.Item8Check.IsChecked.Value)
                 {
-                    channel.list8.Add(new KeyValuePair<DateTime, double>(DateTime.Now, currnetDouble));
+                    channel.list8.Add(new KeyValuePair<DateTime, double>(now, currnetDouble));
                 }
             }            
         }
@@ -478,7 +518,7 @@ namespace SmartCaraTest
                             seriesList[14] = index;
                             Chart.setLegend(index, "CH " + Item1.Channel + " 히터오프타임");
                             Chart.seriesList[index].ItemsSource = Item1.list5;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -692,7 +732,7 @@ namespace SmartCaraTest
                             seriesList[24] = index;
                             Chart.setLegend(index, "CH " + Item2.Channel + " 히터오프타임");
                             Chart.seriesList[index].ItemsSource = Item2.list5;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -907,7 +947,7 @@ namespace SmartCaraTest
                             seriesList[34] = index;
                             Chart.setLegend(index, "CH " + Item3.Channel + " 히터오프타임");
                             Chart.seriesList[index].ItemsSource = Item3.list5;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -1121,7 +1161,7 @@ namespace SmartCaraTest
                             seriesList[44] = index;
                             Chart.setLegend(index, "CH " + Item4.Channel + " 히터오프타임");
                             Chart.seriesList[index].ItemsSource = Item4.list5;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {

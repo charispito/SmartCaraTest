@@ -92,14 +92,14 @@ namespace SmartCaraTest.controls
             legend1.Name = "Default";
             chart.Legends.Add(legend1);
             chart.Name = "Chart";
-            setSeries(new Series(), Color.Blue, 1);
-            setSeries(new Series(), Color.Red, 2);
-            setSeries(new Series(), Color.HotPink, 3);
-            setSeries(new Series(), Color.Gray, 4);
-            setSeries(new Series(), Color.Green, 5);
-            setSeries(new Series(), Color.OrangeRed, 6);
-            setSeries(new Series(), Color.CadetBlue, 7);
-            setSeries(new Series(), Color.DarkOrchid, 8);
+            setSeries(new Series(), Color.Red, 1);
+            setSeries(new Series(), Color.Blue, 2);
+            setSeries(new Series(), Color.Yellow, 3);
+            setSeries(new Series(), Color.LightBlue, 4);
+            setSeries(new Series(), Color.HotPink, 5);
+            setSeries(new Series(), Color.LightGreen, 6);
+            setSeries(new Series(), Color.Green, 7);
+            setSeries(new Series(), Color.Black, 8);
             chart.TabIndex = 1;
             Host.Child = chart;
         }
@@ -114,8 +114,7 @@ namespace SmartCaraTest.controls
             series.Legend = "Default";
             series.Name = "Series" + index;
             seriesList.Add(series);
-            chart.Series.Add(series);
-            
+            chart.Series.Add(series);            
         }
     }
 }

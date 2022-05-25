@@ -1,4 +1,5 @@
 ﻿using SmartCaraTest.data;
+using SmartCaraTest.util;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,6 +29,8 @@ namespace SmartCaraTest.controls
         private int _ConnectState = 0;
         public bool ParameterMode = false;
         public ParameterWindow parameterWindow;
+        public delegate void OnStart();
+        public event OnStart OnTestStart;
         public bool _run = false;
         public bool run {
             get { return _run; }
@@ -45,19 +48,19 @@ namespace SmartCaraTest.controls
         }
         public int number = 1;
         public bool IsNewVersion = false;
-        public int off_sum = 0;
+        public float off_sum = 0;
         public int air_sum = 0;
         public SerialPort port;
         public WPFChartView chartView;
         public StreamWriter streamWriter;
-        public ObservableCollection<KeyValuePair<DateTime, int>> list1 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list2 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list3 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list4 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list5 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list6 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list7 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, double>> list8 = new ObservableCollection<KeyValuePair<DateTime, double>>();
+        public ObservableCollection<KeyValuePair<double, int>> list1 = new ObservableCollection<KeyValuePair<double, int>>();
+        public ObservableCollection<KeyValuePair<double, int>> list2 = new ObservableCollection<KeyValuePair<double, int>>();
+        public ObservableCollection<KeyValuePair<double, int>> list3 = new ObservableCollection<KeyValuePair<double, int>>();
+        public ObservableCollection<KeyValuePair<double, int>> list4 = new ObservableCollection<KeyValuePair<double, int>>();
+        public ObservableCollection<KeyValuePair<double, int>> list5 = new ObservableCollection<KeyValuePair<double, int>>();
+        public ObservableCollection<KeyValuePair<double, int>> list6 = new ObservableCollection<KeyValuePair<double, int>>();
+        public ObservableCollection<KeyValuePair<double, int>> list7 = new ObservableCollection<KeyValuePair<double, int>>();
+        public ObservableCollection<KeyValuePair<double, double>> list8 = new ObservableCollection<KeyValuePair<double, double>>();
         public int ConnectState
         {
             get { return _ConnectState; }
@@ -106,6 +109,20 @@ namespace SmartCaraTest.controls
             Item14.MouseLeftButtonDown += (s, e) => {
                 typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item8Check, new object[0]);
             };
+            Loaded += OneChannelValueDetail_Loaded;
+        }
+
+        private void OneChannelValueDetail_Loaded(object sender, RoutedEventArgs e)
+        {
+            //1 2 6 3 8 5 7 4
+            typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item1Check, new object[0]);
+            typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item2Check, new object[0]);
+            typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item6Check, new object[0]);
+            typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item3Check, new object[0]);
+            typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item8Check, new object[0]);
+            typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item5Check, new object[0]);
+            typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item7Check, new object[0]);
+            typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(Item4Check, new object[0]);
         }
 
         private void ApplyNewVersion_Click(object sender, RoutedEventArgs e)
@@ -137,8 +154,21 @@ namespace SmartCaraTest.controls
             number++;
             air_sum += data.air_temp;
             off_sum += data.heater_off_time;
-            streamWriter.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", data.date, data.mode, data.remain_time, data.heater_temp, data.heater_off_time, 
-                data.air_temp, data.fan_speed, data.hot_air_temp, data.hot_air_ontime, data.motor, data.motor_current, number, off_sum, (double)(off_sum/(double)number), air_sum, (double)(air_sum / (double)number));
+            if(streamWriter != null)
+            {
+                streamWriter.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", data.date, data.mode, data.remain_time, data.heater_temp, data.heater_off_time,
+                data.air_temp, data.fan_speed, data.hot_air_temp, data.hot_air_ontime, data.motor, data.motor_current, number, off_sum, (double)(off_sum / (double)number), air_sum, (double)(air_sum / (double)number));
+            }
+            else
+            {
+                string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ChannelData";
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+                string file = DateTime.Now.ToString("싱글yyyy년MM월dd일_HH시mm분ss초") + ".csv";
+                streamWriter = new StreamWriter(new FileStream(Path.Combine(path, file), FileMode.CreateNew), System.Text.Encoding.Default);
+                initFile();
+            }
+
         }
 
         public void setHandler(RoutedEventHandler handler)
@@ -165,6 +195,7 @@ namespace SmartCaraTest.controls
                 MessageBox.Show("이미 운전중입니다.");
                 return;
             }
+            OnTestStart();
             string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ChannelData";
             if(!Directory.Exists(path))
                 Directory.CreateDirectory(path);
@@ -181,7 +212,7 @@ namespace SmartCaraTest.controls
                 byte[] command = Protocol.GetCommand(2);
                 port.Write(command, 0, command.Length);
             }
-            
+
             list1.Clear();
             list2.Clear();
             list3.Clear();
@@ -201,6 +232,8 @@ namespace SmartCaraTest.controls
         //SMARTCARA-IPTIME2
         //SMARTCARA-IPTIME3
 
+        
+
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             if (!port.IsOpen)
@@ -210,7 +243,8 @@ namespace SmartCaraTest.controls
             }
             if (streamWriter != null)
             streamWriter.Close();
-            chartView.ItemRun[0] = false;
+            streamWriter = null;
+            //chartView.ItemRun[0] = false;
             if (IsNewVersion)
             {
                 byte[] command = Protocol.GetNewCommand(3);

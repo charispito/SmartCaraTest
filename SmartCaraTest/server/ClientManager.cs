@@ -259,6 +259,7 @@ namespace SmartCaraTest.util
                 }
                 catch(Exception ex)
                 {
+                    Console.WriteLine(ex.ToString());
                     RemoveClient(clientdata);
                 }
                 

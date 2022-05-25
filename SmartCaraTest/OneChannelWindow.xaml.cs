@@ -35,6 +35,8 @@ namespace SmartCaraTest
         public ObservableCollection<KeyValuePair<DateTime, int>> list8 = new ObservableCollection<KeyValuePair<DateTime, int>>();
         private List<byte> receivedData = new List<byte>();
         private Timer timer;
+        private TimeSpan TestTime;
+        private Timer testTimer;
 
         public OneChannelWindow()
         {
@@ -47,17 +49,38 @@ namespace SmartCaraTest
             PortList.box.ItemsSource = SerialPort.GetPortNames();
             ConnectButton.Click += ConnectButton_Click;
             channel.port = port;
+            channel.OnTestStart += OnStart;
             timer = new Timer();
             timer.Interval = 1000;
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
+            TestTime = TimeSpan.Zero;
             channel.chartView = Chart;
+            //testTimer = new Timer();
+            //testTimer.Interval = 1000;
+            //testTimer.Elapsed += TestTimer_Elapsed;
+            //channel.Item1Check.IsChecked = true;
+            //channel.Item2Check.IsChecked = true;
+            //channel.Item3Check.IsChecked = true;
+            //channel.Item4Check.IsChecked = true;
+            //channel.Item5Check.IsChecked = true;
+            //channel.Item6Check.IsChecked = true;
+            //channel.Item7Check.IsChecked = true;
+            //channel.Item8Check.IsChecked = true;
+            if (channel.chartView != null)
+            {
+                channel.chartView.initXAxis();
+                channel.chartView.ItemRun[0] = true;
+            }
         }
+
+
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (port.IsOpen)
             {
+                TestTime += TimeSpan.FromSeconds(1);
                 if (!channel.ParameterMode)
                 {
                     if (channel.IsNewVersion)
@@ -303,24 +326,43 @@ namespace SmartCaraTest
         
         private void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
-            if (port.IsOpen)
+            try
             {
-                port.Close();
+                if (port.IsOpen)
+                {
+                    port.Close();
+                    channel.ConnectState = 0;
+                    ConnectButton.Content = "연결";
+                    return;
+                }
+                if (PortList.box.SelectedIndex == -1)
+                {
+                    MessageBox.Show("포트가 선택 되지 않았습니다.");
+                }
+                else
+                {
+                    port.PortName = PortList.box.SelectedItem.ToString();
+                    port.Open();
+                    channel.ConnectState = 1;
+                    ConnectButton.Content = "해제";
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                MessageBox.Show("포트를 확인 하세요");
+            }
+            catch(IOException ex)
+            {                
                 channel.ConnectState = 0;
                 ConnectButton.Content = "연결";
                 return;
             }
-            if(PortList.box.SelectedIndex == -1)
+            catch (Exception ex)
             {
-                MessageBox.Show("포트가 선택 되지 않았습니다.");
+                Console.WriteLine(ex.ToString());
+                MessageBox.Show("문제가 있습니다.");
             }
-            else
-            {
-                port.PortName = PortList.box.SelectedItem.ToString();
-                port.Open();
-                channel.ConnectState = 1;
-                ConnectButton.Content = "해제";
-            }
+            
         }
 
         private void OneChannelWindow_Loaded(object sender, RoutedEventArgs e)
@@ -331,7 +373,7 @@ namespace SmartCaraTest
         }
 
         private void setItems(OneChannelValueDetail item)
-        {
+        {            
             item.Item1.label.Content = "히터 온도";
             item.Item2.label.Content = "배기 온도";
             item.Item3.label.Content = "열풍히터온도";
@@ -378,7 +420,7 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[10] = index;
-                            Chart.setLegend(index, "히터 온도");
+                            Chart.setLegend(index,  "히터 온도");
                             Chart.seriesList[index].ItemsSource = channel.list1;
                             try
                             {
@@ -491,7 +533,7 @@ namespace SmartCaraTest
                             seriesList[14] = index;
                             Chart.setLegend(index, "히터오프타임");
                             Chart.seriesList[index].ItemsSource = channel.list5;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -587,6 +629,6 @@ namespace SmartCaraTest
                     }
                     break;
             }
-        }        
+        }
     }
 }

@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 namespace SmartCaraTest
 {
     partial class OneChannelWindow
-    {
-        string now = DateTime.Now.ToString("yyyy-MM-dd");
-        
+    {        
         public string GetDateTime()
         {
             DateTime NowDate = DateTime.Now;
@@ -115,6 +113,11 @@ namespace SmartCaraTest
             {
                 return;
             }
+            long total_second = (long)TestTime.TotalSeconds;
+            double total_minute = total_second/60;
+            double remain_second = (double)total_second%60/100.0;
+            total_minute += remain_second;
+            Console.WriteLine("total: {0}", total_minute);
             int motorRun = data[5];
             int heateroff = data[7]; //히터 오프타임
             int heatertemp = data[6]; //히터 온도
@@ -142,10 +145,13 @@ namespace SmartCaraTest
             int runTime = data[21];
             string time = string.Format("{0:D2}:{1:D2}", minute, second);
             string t_time = string.Format("{0:D2}:{1:D2}:{2:D2}", t_hour, t_min, t_sec);
-            byte[] current = { 0, 0, data[13], data[14] };
+            byte[] current = { data[13], data[14] };
             Array.Reverse(current);
-            int currentInt = BitConverter.ToInt32(current, 0) * 10;
-            double currnetDouble = (double)currentInt / 1000.0;
+            int currentInt = BitConverter.ToInt16(current, 0) * 10;
+            float currnetDouble = (float)currentInt / 1000.0f;
+            float currentfloat = (data[13] & 0xFF) << 8;
+            currentfloat += (data[14] & 0xFF);
+            currentfloat = currentfloat / 100.0f;
             int year = data[51];
             int month = data[52];
             int day = data[53];
@@ -155,8 +161,10 @@ namespace SmartCaraTest
             byte error1 = data[50];
             int[] binary0 = Enumerable.Range(1, 8).Select(i => error0 / (1 << (8 - i)) % 2).ToArray();
             int[] binary1 = Enumerable.Range(1, 8).Select(i => error1 / (1 << (8 - i)) % 2).ToArray();
-            Array.Reverse(binary0);
-            Array.Reverse(binary1);
+            //Array.Reverse(binary0);
+            //Array.Reverse(binary1);
+            string errorStr = GetErrorName(binary0, binary1);
+            channel.StateContent.Content = errorStr;
             //5 = 0101 RUN CCW
             //9 = 1001 RUN STOP
             //3 = 0011 RUN CW
@@ -203,15 +211,18 @@ namespace SmartCaraTest
             int foreign_count = data[33];
             int motor_over_current = data[34];
             int motor_over_count = data[35];
+            int ventile_temp = data[36];
             int heater_setting_temp = data[26];
             int heater_setting_offtime = data[27];
             int fan_duty = data[29];
             int hot_air_fan_duty = data[30];
+            float heateroffTime = (float)(heateroff / 10.0f);
+            DateTime now = DateTime.Now;
             if (channel.run)
             {
                 ReadData read = new ReadData()
                 {
-                    date = now,
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH_mm_ss"),
                     mode = mode + 1,
                     remain_time = time,
                     heater_temp = heatertemp,
@@ -225,6 +236,7 @@ namespace SmartCaraTest
                 };
                 channel.WriteFile(read);
             }
+            
             DetailView.operation.Value.Content = runTime;
 
             DetailView.motor.Value11.Content = cw_on; //motor cw on
@@ -240,7 +252,7 @@ namespace SmartCaraTest
 
             DetailView.temper.Value1.Content = heater_setting_temp;
             DetailView.temper.Value2.Content = heater_setting_offtime;
-            DetailView.temper.Value3.Content = 0;
+            DetailView.temper.Value3.Content = ventile_temp;
             DetailView.temper.Value4.Content = fan_duty;
 
             DetailView.heater.Value1.Content = 0;
@@ -255,50 +267,145 @@ namespace SmartCaraTest
             channel.Item3.cont.Content = airheatertemp + "ºC";
             channel.Item5.cont.Content = fan_duty + "%";
             channel.Item15.cont.Content = hot_air_fan_duty + "%";
-            channel.Item11.cont.Content = heateroff;
+            channel.Item11.cont.Content = heateroffTime + "ms";
             channel.Item12.cont.Content = airaverage + "ºC";
             channel.Item13.cont.Content = heaterduty;
-            channel.Item14.cont.Content = currnetDouble + "A";
+            channel.Item14.cont.Content = string.Format("{0:0.00A}", currentfloat / 2.0);
             channel.Item6.cont.Content = t_time;
             channel.Item4.Title = getMotorState(motorRun);
             channel.Item4.cont.Content = motorRunTime.ToString() + "s";
             channel.Item26.cont.Content = (mode + 1).ToString();
-            if (channel.run)
-            {
+            //if (channel.run)
+            //132974952879387151
+            //132974952889504627
+            //132974952899671426
+            
+            Console.WriteLine("NOW: " + DateTime.Now.ToFileTime());
                 if (channel.Item1Check.IsChecked.Value)
                 {
-                    channel.list1.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heatertemp));
+                    channel.list1.Add(new KeyValuePair<double, int>(total_minute, heatertemp));
                 }
                 if (channel.Item2Check.IsChecked.Value)
                 {
-                    channel.list2.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airtemp));
+                    channel.list2.Add(new KeyValuePair<double, int>(total_minute, airtemp));
                 }
                 if (channel.Item3Check.IsChecked.Value)
                 {
-                    channel.list3.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airheatertemp));
+                    channel.list3.Add(new KeyValuePair<double, int>(total_minute, airheatertemp));
                 }
                 if (channel.Item4Check.IsChecked.Value)
                 {
-                    channel.list4.Add(new KeyValuePair<DateTime, int>(DateTime.Now, getMotorValue(motorRun)));
+                    channel.list4.Add(new KeyValuePair<double, int>(total_minute, getMotorValue(motorRun)));
                 }
                 if (channel.Item5Check.IsChecked.Value)
                 {
-                    channel.list5.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heateroff));
+                    channel.list5.Add(new KeyValuePair<double, int>(total_minute, heateroff));
                 }
                 if (channel.Item6Check.IsChecked.Value)
                 {
-                    channel.list6.Add(new KeyValuePair<DateTime, int>(DateTime.Now, airaverage));
+                    channel.list6.Add(new KeyValuePair<double, int>(total_minute, airaverage));
                 }
                 if (channel.Item7Check.IsChecked.Value)
                 {
-                    channel.list7.Add(new KeyValuePair<DateTime, int>(DateTime.Now, heaterduty));
+                    channel.list7.Add(new KeyValuePair<double, int>(total_minute, heaterduty));
                 }
                 if (channel.Item8Check.IsChecked.Value)
                 {
-                    channel.list8.Add(new KeyValuePair<DateTime, double>(DateTime.Now, currnetDouble));
+                    channel.list8.Add(new KeyValuePair<double, double>(total_minute, currnetDouble/2.0));
                 }
-            }
+            //}
         }
+
+        public void OnStart()
+        {
+            TestTime = TimeSpan.Zero;
+        }
+
+        private string GetErrorName(int[] errors0, int[] errors1)
+        {
+            Array.Reverse(errors0);
+            Array.Reverse(errors1);
+            StringBuilder builder = new StringBuilder();
+            int cnt = 0;
+            if (errors0 != null && errors0.Length > 0)
+                for (int i = 0; i < errors0.Length; i++)
+                {
+                    if (errors0[i] == 1)
+                    {
+                        cnt++;
+                        switch (i)
+                        {
+                            case 0:
+                                builder.AppendLine("모터 과부하", true);
+                                break;
+                            case 1:
+                                builder.AppendLine("모터 단선", true);
+                                break;
+                            case 2:
+                                builder.AppendLine("히터 동작 이상", true);
+                                break;
+                            case 3:
+                                if (errors0[2] != 1)
+                                    builder.AppendLine("히터 동작 이상", true);
+                                else
+                                    cnt--;
+                                break;
+                            case 4:
+                                builder.AppendLine("히터 센서 이상", true);
+                                break;
+                            case 5:
+                                builder.AppendLine("배기 온도 이상", true);
+                                break;
+                            case 6:
+                                builder.AppendLine("배기 센서 이상", true);
+                                break;
+                            case 7:
+                                builder.AppendLine("배기 팬 이상", true);
+                                break;
+                        }
+                    }
+                }
+            if (errors1 != null && errors1.Length > 0)
+                for (int i = 0; i < errors1.Length; i++)
+                {
+                    if (errors1[i] == 1)
+                    {
+                        cnt++;
+                        switch (i)
+                        {
+                            case 0:
+                                builder.AppendLine("이물질감지", true);
+                                break;
+                            case 1:
+                                builder.AppendLine("도어 열림", true);
+                                break;
+                            case 2:
+                                if (errors1[1] != 1)
+                                    builder.AppendLine("도어 열림", true);
+                                else
+                                    cnt--;
+                                break;
+                            case 3:
+                                builder.AppendLine("열풍 팬 에러", true);
+                                break;
+                            case 4:
+                                builder.AppendLine("열풍 히터 과열", true);
+                                break;
+                            case 5:
+                                builder.AppendLine("열풍 히터 오픈", true);
+                                break;
+                            case 6:
+                                builder.AppendLine("만수, 워터센서 오픈", true);
+                                break;
+                            case 7:
+                                builder.AppendLine("열풍 히터 저온", true);
+                                break;
+                        }
+                    }
+                }
+            return builder.ToString();
+        }
+
         private string getModelName(int model)
         {
             switch (model)
@@ -316,12 +423,15 @@ namespace SmartCaraTest
 
         private int getMotorValue(int run)
         {
+            Console.WriteLine("Value:{0}", run);
             switch (run)
             {
                 case 2:
                     return 75;
                 case 3:
                     return 75;
+                case 4:
+                    return 25;
                 case 5:
                     return 25;
                 case 8:
