@@ -152,6 +152,8 @@ namespace SmartCaraTest
             float currentfloat = (data[13] & 0xFF) << 8;
             currentfloat += (data[14] & 0xFF);
             currentfloat = currentfloat / 100.0f;
+            if (currentfloat > 1)
+                currentfloat = -1;
             int year = data[51];
             int month = data[52];
             int day = data[53];

@@ -8,12 +8,7 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.DataVisualization.Charting;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace SmartCaraTest.controls
@@ -28,6 +23,7 @@ namespace SmartCaraTest.controls
         private DateTime dateX = DateTime.Now;
         private int yInterval = 20;
         private int xInterval = 10;
+        private int _XMin = 0, _XMax = 180;
         public Dictionary<int, bool> ItemRun = new Dictionary<int, bool>();
         public List<LineSeries> seriesList = new List<LineSeries>();
         public List<LinearAxis> Yaxis = new List<LinearAxis>();
@@ -43,10 +39,12 @@ namespace SmartCaraTest.controls
             LinearAxis axis = new LinearAxis();
             Style verticalStyle = new Style(typeof(NumericAxisLabel));
             verticalStyle.Setters.Add(new Setter(NumericAxisLabel.FontSizeProperty, 12.5));
+
             for (int i = 1; i < 5; i++)
             {
                 ItemRun[i] = false;
             }
+
             axis.Orientation = AxisOrientation.Y;
             axis.Foreground = Brushes.Red;
             axis.ShowGridLines = true;
@@ -54,6 +52,7 @@ namespace SmartCaraTest.controls
             axis.Maximum = 200;
             axis.Location = AxisLocation.Auto;
             axis.Interval = 20;
+
             series1.DependentRangeAxis = axis;
 
             setStyle(series1, Brushes.Red);
@@ -73,7 +72,10 @@ namespace SmartCaraTest.controls
             axis2.Maximum = 100;
             axis2.Location = AxisLocation.Left;
             axis2.Interval = 10;
+            HBar.ValueChanged += HBar_ValueChanged;
+
             series2.DependentRangeAxis = axis2;
+
             LinearAxis axis3 = new LinearAxis();
             axis3.Orientation = AxisOrientation.Y;
             axis3.Minimum = 0.0;
@@ -89,6 +91,27 @@ namespace SmartCaraTest.controls
             Yaxis.Add(axis2);
             Yaxis.Add(axis3);
             initXAxis();
+        }
+
+        private void HBar_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Console.WriteLine("HBar : {0}", HBar.Value);
+            if (MinutesAxis == null) return;
+            double? lMax = MinutesAxis.Maximum;
+            if (lMax == null)
+                lMax = MinutesAxis.ActualMaximum;
+            double lZoom = (_XMax - _XMin) * 50 / 100.0 / 2.0;
+            double lValue = HBar.Value;
+            Console.WriteLine("lMax : {0} lValue: {1} lZoom: {2}", lMax, lValue, lZoom);
+            if(lValue > lMax)
+            {
+                MinutesAxis.Maximum = Math.Max(lValue + lZoom, _XMax);
+                MinutesAxis.Minimum = Math.Min(MinutesAxis.Maximum.Value - lZoom, _XMin);
+                return;
+            }
+            MinutesAxis.Minimum = Math.Max(lValue - lZoom, _XMin);          // widen
+            MinutesAxis.Maximum = Math.Min(MinutesAxis.Minimum.Value + lZoom, _XMax);          // tighten
+            e.Handled = true;
         }
 
         public void setAxis(LineSeries series, int index)
@@ -129,6 +152,8 @@ namespace SmartCaraTest.controls
 
         public void initXAxis()
         {
+            
+
             bool run = false;
             for (int i = 1; i < 5; i++)
             {
@@ -150,7 +175,7 @@ namespace SmartCaraTest.controls
             linearStyle.Setters.Add(new Setter(NumericAxisLabel.StringFormatProperty, "{0: 0분}"));
             MinutesAxis.AxisLabelStyle = linearStyle;
             MinutesAxis.Minimum = 0;
-            MinutesAxis.Maximum = 180;
+            MinutesAxis.Maximum = 100;
             //Style axisStyle = new Style(typeof(DateTimeAxisLabel));
             //axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.FontSizeProperty, 10.0));
             //axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.StringFormatProperty, "{0: mm분}"));
@@ -175,7 +200,8 @@ namespace SmartCaraTest.controls
         {
             InitializeComponent();
             chart.Background = Brushes.Transparent;
-
+            var max = HBar.Maximum - HBar.Minimum;
+            HBar.ViewportSize = 35 / (max - 35) * max;
             LinearAxis axis = new LinearAxis();
             Style verticalStyle = new Style(typeof(NumericAxisLabel));
             verticalStyle.Setters.Add(new Setter(NumericAxisLabel.FontSizeProperty, 12.5));
@@ -183,6 +209,7 @@ namespace SmartCaraTest.controls
             {
                 ItemRun[i] = false;
             }
+            HBar.ValueChanged += HBar_ValueChanged;
             axis.Orientation = AxisOrientation.Y;
             axis.Foreground = Brushes.Red;
             axis.Minimum = 0;
