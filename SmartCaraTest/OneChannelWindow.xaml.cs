@@ -25,14 +25,7 @@ namespace SmartCaraTest
     {
         private Dictionary<int, int> seriesList = new Dictionary<int, int>();
         private SerialPort port;
-        public ObservableCollection<KeyValuePair<DateTime, int>> list1 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list2 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list3 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list4 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list5 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list6 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list7 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list8 = new ObservableCollection<KeyValuePair<DateTime, int>>();
+
         private List<byte> receivedData = new List<byte>();
         private Timer timer;
         private TimeSpan TestTime;
@@ -42,6 +35,7 @@ namespace SmartCaraTest
         {
             InitializeComponent();
             setItems(channel);
+            
             Loaded += OneChannelWindow_Loaded;
             port = new SerialPort();
             port.BaudRate = 9600;
@@ -81,8 +75,8 @@ namespace SmartCaraTest
             if (port.IsOpen)
             {
                 TestTime += TimeSpan.FromSeconds(1);
-                if (!channel.ParameterMode)
-                {
+                //if (!channel.ParameterMode)
+                //{
                     if (channel.IsNewVersion)
                     {
                         //byte[] command = Protocol.GetNewCommand(1);
@@ -97,7 +91,7 @@ namespace SmartCaraTest
                         Console.WriteLine("command");
                     }
                     
-                }
+                //}
             }
         }
 
@@ -351,8 +345,8 @@ namespace SmartCaraTest
             {
                 MessageBox.Show("포트를 확인 하세요");
             }
-            catch(IOException ex)
-            {                
+            catch (IOException ex)
+            {
                 channel.ConnectState = 0;
                 ConnectButton.Content = "연결";
                 return;
@@ -362,7 +356,7 @@ namespace SmartCaraTest
                 Console.WriteLine(ex.ToString());
                 MessageBox.Show("문제가 있습니다.");
             }
-            
+
         }
 
         private void OneChannelWindow_Loaded(object sender, RoutedEventArgs e)

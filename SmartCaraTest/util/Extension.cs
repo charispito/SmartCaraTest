@@ -27,6 +27,16 @@ namespace SmartCaraTest.util
                 return false;
         }
 
+        public static void addValue(this KeyValuePair<double, int>?[] arr, KeyValuePair<double, int>? value)
+        {
+            int index = arr.Count(i => i.HasValue);
+            Console.WriteLine("index = {0}, size = {1}", index, arr.Length);
+            if(index < arr.Length)
+            {
+                arr[index] = value;
+            }            
+        }
+
         public static void PrintHex(this byte[] arr)
         {
             string hex = "";

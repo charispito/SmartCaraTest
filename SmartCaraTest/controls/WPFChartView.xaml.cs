@@ -23,12 +23,12 @@ namespace SmartCaraTest.controls
         private DateTime dateX = DateTime.Now;
         private int yInterval = 20;
         private int xInterval = 10;
-        private int _XMin = 0, _XMax = 180;
+        public int _XMin = 0, _XMax = 120;
         public Dictionary<int, bool> ItemRun = new Dictionary<int, bool>();
         public List<LineSeries> seriesList = new List<LineSeries>();
         public List<LinearAxis> Yaxis = new List<LinearAxis>();
         private DateTimeAxis Time = new DateTimeAxis();
-        private LinearAxis MinutesAxis = new LinearAxis();
+        public LinearAxis MinutesAxis = new LinearAxis();
 
         public WPFChartView(int channel)
         {
@@ -95,15 +95,16 @@ namespace SmartCaraTest.controls
 
         private void HBar_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+
             Console.WriteLine("HBar : {0}", HBar.Value);
             if (MinutesAxis == null) return;
-            double? lMax = MinutesAxis.Maximum;
-            if (lMax == null)
-                lMax = MinutesAxis.ActualMaximum;
+            double lMax = MinutesAxis.Maximum.Value;
+            //if (lMax == null)
+            //    lMax = MinutesAxis.ActualMaximum;
             double lZoom = (_XMax - _XMin) * 50 / 100.0 / 2.0;
             double lValue = HBar.Value;
             Console.WriteLine("lMax : {0} lValue: {1} lZoom: {2}", lMax, lValue, lZoom);
-            if(lValue > lMax)
+            if (lValue > lMax)
             {
                 MinutesAxis.Maximum = Math.Max(lValue + lZoom, _XMax);
                 MinutesAxis.Minimum = Math.Min(MinutesAxis.Maximum.Value - lZoom, _XMin);
@@ -175,7 +176,7 @@ namespace SmartCaraTest.controls
             linearStyle.Setters.Add(new Setter(NumericAxisLabel.StringFormatProperty, "{0: 0분}"));
             MinutesAxis.AxisLabelStyle = linearStyle;
             MinutesAxis.Minimum = 0;
-            MinutesAxis.Maximum = 100;
+            MinutesAxis.Maximum = 120;
             //Style axisStyle = new Style(typeof(DateTimeAxisLabel));
             //axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.FontSizeProperty, 10.0));
             //axisStyle.Setters.Add(new Setter(DateTimeAxisLabel.StringFormatProperty, "{0: mm분}"));
@@ -196,12 +197,17 @@ namespace SmartCaraTest.controls
             series8.IndependentAxis = MinutesAxis;
         }
 
+        public void setViewPort(double value)
+        {
+            //var max = HBar.Maximum - HBar.Minimum;
+            //HBar.ViewportSize = value / (max - value) * max;
+        }
+
         public WPFChartView()
         {
             InitializeComponent();
             chart.Background = Brushes.Transparent;
-            var max = HBar.Maximum - HBar.Minimum;
-            HBar.ViewportSize = 35 / (max - 35) * max;
+            setViewPort(99.99);
             LinearAxis axis = new LinearAxis();
             Style verticalStyle = new Style(typeof(NumericAxisLabel));
             verticalStyle.Setters.Add(new Setter(NumericAxisLabel.FontSizeProperty, 12.5));

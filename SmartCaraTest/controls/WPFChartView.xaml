@@ -38,7 +38,7 @@
                     </Style>
                 </charting:Chart.PlotAreaStyle>
             </charting:Chart>
-            <ScrollBar x:Name="HBar" Grid.Row="2" Orientation="Horizontal" Maximum="50" Minimum="0"/>
+            <ScrollBar x:Name="HBar" Grid.Row="2" Orientation="Horizontal" Maximum="40" Minimum="0"/>
             <Grid Margin="5, 10, 5, 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>

@@ -132,12 +132,17 @@ namespace SmartCaraTest.controls
 
         private void ParameterButton_Click(object sender, RoutedEventArgs e)
         {
-            if(port != null && port.IsOpen && !run)
+            //if(port != null && port.IsOpen && !run)
+            //{
+            //    parameterWindow = new ParameterWindow(port, this);
+            //    parameterWindow.Show();
+            //}
+            if (port != null && port.IsOpen)
             {
                 parameterWindow = new ParameterWindow(port, this);
                 parameterWindow.Show();
             }
-            
+
         }
 
         private void initFile()

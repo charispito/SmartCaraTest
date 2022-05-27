@@ -117,6 +117,12 @@ namespace SmartCaraTest
             double total_minute = total_second/60;
             double remain_second = (double)total_second%60/100.0;
             total_minute += remain_second;
+            if(total_minute >= Chart._XMax)
+            {
+                Chart._XMax += 10;
+                Chart.MinutesAxis.Maximum = Chart._XMax;
+                Chart.setViewPort(60);
+            }
             Console.WriteLine("total: {0}", total_minute);
             int motorRun = data[5];
             int heateroff = data[7]; //히터 오프타임
