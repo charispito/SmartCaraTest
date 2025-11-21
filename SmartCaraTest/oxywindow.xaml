@@ -3,11 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SmartCaraTest" xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:local="clr-namespace:SmartCaraTest"
+        xmlns:oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf"
         mc:Ignorable="d"
         Title="oxywindow" Height="450" Width="800">
     <Grid>
-        <oxy:PlotView Grid.Row="0" Grid.Column="0">
-        </oxy:PlotView>
+        <oxy:PlotView Model="{Binding PlotModel}"/>
     </Grid>
 </Window>

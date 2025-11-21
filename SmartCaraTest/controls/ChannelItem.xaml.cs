@@ -1,27 +1,69 @@
-﻿using SmartCaraTest.data;
+﻿using OxyPlot;
+using SmartCaraTest.data;
+using SmartCaraTest.util;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace SmartCaraTest.controls
 {
     public partial class ChannelItem : UserControl
     {
         public StreamWriter streamWriter;
-        public bool ParameterMode = false;
+        private bool _ParameterMode = false;
+        public bool ParameterMode
+        {
+            get
+            {
+                return _ParameterMode;
+            }
+            set
+            {
+                _ParameterMode = value;
+                if (_ParameterMode)
+                {
+                    Console.WriteLine("load");
+                    OnParameterLoadAction(0);
+                }
+            }
+        }
         string now = DateTime.Now.ToString("yyyy-MM-dd");
         public bool Response = false;
         public int number = 1;
+        public delegate void CheckChanged();
+        public event CheckChanged OnCheckChanged;
+        public delegate void OnParamerLoad(int type);
+        public event OnParamerLoad OnParameterLoadAction;
         public bool IsNewVersion = false;
+        private bool _SaveInDesktop = false;
+        public bool SaveInDesktop
+        {
+            get
+            {
+                return _SaveInDesktop;
+            }
+            set
+            {
+                _SaveInDesktop = value;
+                Modify = true;
+            }
+        }
+        public string FName { get; set; }
+        public bool Modify = false;
         public float off_sum = 0;
         public int air_sum = 0;
+        public TimeSpan TestTime;
+        
         public int NonResponse { get; set; } = 0;
+        public Dictionary<int, int> seriesList { get; set; }
         public MultiParameterWindow ParameterWindow { get; set; }
         private bool _run = false;
         public bool run {
@@ -34,40 +76,31 @@ namespace SmartCaraTest.controls
                 _run = value;
                 if (value)
                 {
-                    Item23.cont.Content = "운전중";
+                    StateBox.cont.Content = "운전중";
+                    this.Background = new SolidColorBrush(Color.FromRgb(98, 255, 81));
+                    StateBox.cont.Background = new SolidColorBrush(Color.FromRgb(98, 255, 81));
                 }
                 else
                 {
-                    Item23.cont.Content = "정지";
+                    StateBox.cont.Content = "정지";
+                    this.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                    StateBox.cont.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255));
                 }
             }
         }
+
         public int ItemIndex = 0;
         public int ParameterCount = 0;
-        public WPFChartView chartView { get; set; }
-        public ObservableCollection<KeyValuePair<DateTime, int>> list1 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list2 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list3 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list4 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list5 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list6 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, int>> list7 = new ObservableCollection<KeyValuePair<DateTime, int>>();
-        public ObservableCollection<KeyValuePair<DateTime, double>> list8 = new ObservableCollection<KeyValuePair<DateTime, double>>();
+        public OxyView chartView { get; set; }
         public TcpClient client { get; set; }
         public long TimeMills { get; set; }
         private int _Channel;
 
         public void clearData()
-        {
-            list1.Clear();
-            list2.Clear();
-            list3.Clear();
-            list4.Clear();
-            list5.Clear();
-            list6.Clear();
-            list7.Clear();
-            list8.Clear();
+        {            
             NonResponse = 0;
+            run = false;
+            ApplyNewVersion.IsChecked = false;
             Item1.cont.Content = "";
             Item2.cont.Content = "";
             Item3.cont.Content = "";
@@ -80,13 +113,13 @@ namespace SmartCaraTest.controls
             Item14.cont.Content = "";
             Item15.cont.Content = "";
             Item16.cont.Content = "";
-            Item21.cont.Content = "";
-            Item22.cont.Content = "";
-            Item23.cont.Content = "";
-            Item24.cont.Content = "";
-            Item25.cont.Content = "";
-            Item26.cont.Content = "";
-            ChannelView.cont.Content = "";
+            VersionBox.cont.Content = "";
+            CompileBox.cont.Content = "";
+            StateBox.cont.Content = "";
+            ModeTimeView.cont.Content = "";
+            ModeTimeView.label.Content = "";
+            //ChannelView.cont.Content = "";
+            TestTime = TimeSpan.Zero;
         }
 
         public int Channel {
@@ -103,8 +136,18 @@ namespace SmartCaraTest.controls
             air_sum = 0;
             off_sum = 0;
             number = 0;
-            streamWriter.WriteLine("날짜,모드,남은 시간,히터 온도,히터 오프타임,배기온도,FAN Speed," +
+            if (IsNewVersion)
+            {
+                streamWriter.WriteLine("날짜,모드,남은 시간,히터 온도,히터 오프타임,배기온도,FAN Speed," +
+                "평균히터오프타임,열풍온타임,MOTOR,모터 전류,번호,오프타임합,오프평균,배기 합,배기 평균");
+            }
+            else
+            {
+                streamWriter.WriteLine("날짜,모드,남은 시간,히터 온도,히터 오프타임,배기온도,FAN Speed," +
                 "열풍온도,열풍온타임,MOTOR,모터 전류,번호,오프타임합,오프평균,배기 합,배기 평균");
+            }
+            //streamWriter.WriteLine("날짜,모드,남은 시간,히터 온도,히터 오프타임,배기온도,FAN Speed," +
+            //    "열풍온도,열풍온타임,MOTOR,모터 전류,번호,오프타임합,오프평균,배기 합,배기 평균");
         }
 
         public void WriteFile(ReadData data)
@@ -114,18 +157,67 @@ namespace SmartCaraTest.controls
             off_sum += data.heater_off_time;
             if(streamWriter != null)
             {
-                streamWriter.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", data.date, data.mode, data.remain_time, data.heater_temp, data.heater_off_time,
+                if (Modify)
+                {
+                    streamWriter.Close();
+                    initPath();
+                    Modify = false;
+                }
+                else if(streamWriter.BaseStream == null)
+                {
+                    initPath();
+                }
+                else
+                {
+                    //hot_air_temp
+                //    if (IsNewVersion)
+                //    {
+                //        streamWriter.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", data.date, data.mode, data.remain_time, data.heater_temp, data.heater_off_time,
+                //data.air_temp, data.fan_speed, 0, data.hot_air_ontime, data.motor, data.motor_current, number, off_sum, data.hot_air_temp, air_sum, (double)(air_sum / (double)number));
+                //    }
+                //    else
+                //    {
+                        streamWriter.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", data.date, data.mode, data.remain_time, data.heater_temp, data.heater_off_time,
                 data.air_temp, data.fan_speed, data.hot_air_temp, data.hot_air_ontime, data.motor, data.motor_current, number, off_sum, (double)(off_sum / (double)number), air_sum, (double)(air_sum / (double)number));
+                    //}
+                    //streamWriter.Flush();
+                }                
             }
             else
             {
-                string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ChannelData";
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
-                string file = $"Ch{_Channel}" + DateTime.Now.ToString("_yyyy년MM월dd일_HH시mm분ss초") + ".csv";
-                streamWriter = new StreamWriter(new FileStream(Path.Combine(path, file), FileMode.CreateNew), System.Text.Encoding.Default);
+                initPath();
+                Modify = false;
+            }
+            
+        }
+        private void initPath()
+        {
+            string path = ".\\ChannelData";
+            if (_SaveInDesktop)
+            {
+                path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\ChannelData";
+            }
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            string file = FName + $"_ch{_Channel}" + ".csv";
+            //FileInfo fileInfo = new FileInfo(Path.Combine(path, file));
+            //if (!fileInfo.Exists)
+            //{
+            //    fileInfo.Create();
+            //}
+            try
+            {
+                streamWriter = new StreamWriter(Path.Combine(path, file), true, System.Text.Encoding.Default);
                 initFile();
             }
+            catch(Exception ex)
+            {
+                file = FName + $"_ch{_Channel}_2" + ".csv";
+                streamWriter = new StreamWriter(Path.Combine(path, file), true, System.Text.Encoding.Default);
+                initFile();
+            }
+            
+            //streamWriter = new StreamWriter(new FileStream(Path.Combine(path, file), FileMode.OpenOrCreate), System.Text.Encoding.Default);
             
         }
 
@@ -164,19 +256,38 @@ namespace SmartCaraTest.controls
 
         private void ApplyNewVersion_Click(object sender, RoutedEventArgs e)
         {
+            if (client == null || !client.Connected)
+            {
+                IsNewVersion = false;
+                ApplyNewVersion.IsChecked = false;
+                MessageBox.Show("연결 되지 않았습니다.");
+                return;
+            }
             IsNewVersion = (sender as CheckBox).IsChecked.Value;
+            if(OnCheckChanged != null)
+            {
+                OnCheckChanged();
+            }
+            else
+            {
+                IsNewVersion = false;
+                ApplyNewVersion.IsChecked = false;
+            }
+            
         }
 
         private void ParameterButton_Click(object sender, RoutedEventArgs e)
         {
-            if (run)
+            if(client == null || !client.Connected)
             {
+                MessageBox.Show("연결 되지 않았습니다.");
                 return;
             }
             Task.Delay(200).ContinueWith(_ => 
             {
                 Dispatcher.BeginInvoke(new Action(() => {
                     ParameterWindow = new MultiParameterWindow(this);
+                    ParameterWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
                     ParameterWindow.Show();
                 }));
             });
@@ -190,14 +301,18 @@ namespace SmartCaraTest.controls
             }
         }
 
+        public void setParameter(int type)
+        {
+            OnParameterLoadAction(1);
+        }
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
-            run = false;
-            if(streamWriter != null)
+            if (client == null || !client.Connected)
             {
-                streamWriter.Close();
+                MessageBox.Show("연결 되지 않았습니다.");
+                return;
             }
-            chartView.ItemRun[ItemIndex] = false;
+            run = false;
             byte[] command = null;
             if (IsNewVersion)
             {
@@ -207,24 +322,46 @@ namespace SmartCaraTest.controls
             {
                 command = Protocol.GetCommand(3);
             }
-            client.GetStream().Write(command, 0, command.Length);
+            try
+            {
+                client.GetStream().Write(command, 0, command.Length);
+            }
+            catch (Exception ex)
+            {
+                client.Close();
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        private void ClearPoints()
+        {
+            TestTime = TimeSpan.Zero;
+            int start = ItemIndex * 10;
+            int end = start + 8; 
+            seriesList.Keys.ToArray().PrintInt();
+            for (int key = start; key < end; key++)
+            {
+                if (seriesList.ContainsKey(key))
+                {
+                    int index = seriesList[key];
+                    chartView.ViewModel.ClearSeries(index);
+                }
+            }
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-
+            if (client == null || !client.Connected)
+            {
+                MessageBox.Show("연결 되지 않았습니다.");
+                return;
+            }
             byte[] command = null;
             if (run)
             {
                 MessageBox.Show("이미 시작했습니다.");
                 return;
             }
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ChannelData";
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-            string file = $"Ch{_Channel}" + DateTime.Now.ToString("_yyyy년MM월dd일_HH시mm분ss초") + ".csv";
-            streamWriter = new StreamWriter(new FileStream(Path.Combine(path, file), FileMode.CreateNew), System.Text.Encoding.Default);
-            initFile();
             if (IsNewVersion)
             {
                 command = Protocol.GetNewCommand(2);
@@ -233,33 +370,19 @@ namespace SmartCaraTest.controls
             {
                 command = Protocol.GetCommand(2);
             }
-            client.GetStream().Write(command, 0, command.Length);
-            list1.Clear();
-            list2.Clear();
-            list3.Clear();
-            list4.Clear();
-            list5.Clear();
-            list6.Clear();
-            list7.Clear();
-            list8.Clear();
-            run = true;
-            if (chartView != null)
+            try
             {
-                chartView.initXAxis();
-                chartView.ItemRun[ItemIndex] = true;
+                client.GetStream().Write(command, 0, command.Length);
             }
+            catch(Exception ex)
+            {
+                client.Close();
+                Console.WriteLine(ex.ToString());
+            }
+            //ClearPoints();
         }
 
-        private void PrintCommand(byte[] command)
-        {
-            string hex = "";
-            foreach (byte b in command)
-            {
-                hex += " " + b.ToString("X2");
-            }
-            Console.WriteLine("Length:{0}, Data:{1}", command.Length, hex);
-        }
-
+      
         public void setHandler(RoutedEventHandler handler)
         {
             Item1Check.Click += handler;
@@ -274,7 +397,6 @@ namespace SmartCaraTest.controls
 
         public void SetView(byte[] data)
         {
-            //Console.WriteLine("set");
             if (data.Length < 57)
                 return;
             if (data[3] != 57)
@@ -293,6 +415,8 @@ namespace SmartCaraTest.controls
                 if (data.Last() != 0xEF)
                     return;
             }
+            data.PrintHex(1);
+            //TestTime += TimeSpan.FromSeconds(1);
             //PrintCommand(data);
             //Console.WriteLine("view");
             int motorRun = data[5];
@@ -301,6 +425,7 @@ namespace SmartCaraTest.controls
             int airtemp = data[8]; //배기 온도
             int airaverage = data[9];
             int airheatertemp = data[10]; //열풍 온도
+            Console.WriteLine("10: {0}", airheatertemp);
             int heaterduty = data[11];
             int mode = data[15];
             int minute = data[16];
@@ -319,6 +444,21 @@ namespace SmartCaraTest.controls
                     run = true;
                 }
             }
+            long total_second = (long)TestTime.TotalSeconds;
+            double total_minute = total_second / 60;
+            double remain_second = (double)total_second % 60 / 100.0;
+            double remain_value = 0.40 / 60;
+            if (total_second > 0)
+            {
+                Console.WriteLine("22");
+                total_minute += (remain_second + remain_value * (total_second % 60));
+            }
+            else
+            {
+                Console.WriteLine("11");
+                total_minute += remain_second;
+            }
+            //total_minute += remain_second;
             int t_hour = data[18];
             int t_min = data[19];
             int t_sec = data[20];
@@ -328,21 +468,28 @@ namespace SmartCaraTest.controls
             string t_time = string.Format("{0:D2}:{1:D2}:{2:D2}", t_hour, t_min, t_sec);
             byte[] current = { 0, 0, data[13], data[14] };
             Array.Reverse(current);
-            int currentInt = BitConverter.ToInt32(current, 0) * 10;
-            double currnetDouble = (double)currentInt / 1000.0;
+            int currentInt = BitConverter.ToInt16(current, 0) * 10;
+            float currnetDouble = (float)currentInt / 1000.0f;
+            float currentfloat = (data[13] & 0xFF) << 8;
+            currentfloat += (data[14] & 0xFF);
+            currentfloat = currentfloat / 100.0f;
+            if (currentfloat > 1)
+                currentfloat = -1;
             int year = data[51];
             int month = data[52];
             int day = data[53];
             int version = data[54];
-            string micom = $"{year}.{month}.{day}. ver {version}";
+            int model = data[48];
+            string micom = $"{year}.{month}.{day} ver {version}";
             byte error0 = data[49];
             byte error1 = data[50];
             int hot_air_fan_duty = data[30];
             int[] binary0 = Enumerable.Range(1, 8).Select(i => error0 / (1 << (8 - i)) % 2).ToArray();
             int[] binary1 = Enumerable.Range(1, 8).Select(i => error1 / (1 << (8 - i)) % 2).ToArray();
-            Array.Reverse(binary0);
-            Array.Reverse(binary1);
+            //Array.Reverse(binary0);
+            //Array.Reverse(binary1);
             float heateroffTime = (float)(heateroff / 10.0f);
+            float averOffTime = (float)(airheatertemp / 10.0f);
             //5 = 0101 RUN CCW
             //9 = 1001 RUN STOP
             //3 = 0011 RUN CW
@@ -352,6 +499,7 @@ namespace SmartCaraTest.controls
             bool[] errors0 = new bool[8];
             bool[] errors1 = new bool[8];
             int motorRunTime = data[12];
+            
             for (int i = 0; i < 8; i++)
             {
                 if (binary0[i] == 0)
@@ -379,11 +527,29 @@ namespace SmartCaraTest.controls
             {
                 Item16.cont.Content = "감지";
             }
-            if (run)
-            {
+            //if (IsNewVersion)
+            //{
+            //    ReadData read = new ReadData()
+            //    {
+            //        date = DateTime.Now.ToString("yyyy-MM-dd_HH_mm_ss"),
+            //        mode = mode + 1,
+            //        remain_time = time,
+            //        heater_temp = heatertemp,
+            //        heater_off_time = averOffTime,
+            //        air_temp = airtemp,
+            //        fan_speed = fan_duty,
+            //        hot_air_temp = airheatertemp,
+            //        hot_air_ontime = heaterduty,
+            //        motor = getMotorState(motorRun),
+            //        motor_current = currentfloat / 2.0
+            //    };
+            //    WriteFile(read);
+            //}
+            //else
+            //{
                 ReadData read = new ReadData()
                 {
-                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    date = DateTime.Now.ToString("yyyy-MM-dd_HH_mm_ss"),
                     mode = mode + 1,
                     remain_time = time,
                     heater_temp = heatertemp,
@@ -393,65 +559,80 @@ namespace SmartCaraTest.controls
                     hot_air_temp = airheatertemp,
                     hot_air_ontime = heaterduty,
                     motor = getMotorState(motorRun),
-                    motor_current = currnetDouble
+                    motor_current = currentfloat / 2.0
                 };
                 WriteFile(read);
-            }
-
-
-            
-            Item21.cont.Content = getModelName(data[48]);
-            Item22.cont.Content = micom;
-            Item24.cont.Content = time;
+            //}
+            string errorStr = GetErrorName(binary0, binary1);
+            StateContent.Content = errorStr;
+            VersionBox.cont.Content = getModelName(model);
+            CompileBox.cont.Content = micom;
+            ModeTimeView.cont.Content = time;
             Item1.cont.Content = heatertemp + "ºC";
             Item2.cont.Content = airtemp + "ºC";
-            Item3.cont.Content = airheatertemp + "ºC";
+            
+            if (IsNewVersion)
+            {
+                Item3.cont.Content = averOffTime + "ms";
+            }
+            else
+            {
+                Item3.cont.Content = airheatertemp + "ºC";
+            }
             Item5.cont.Content = fan_duty + "%";
             Item15.cont.Content = hot_air_fan_duty + "%";
             Item11.cont.Content = heateroffTime + "ms";
             Item12.cont.Content = airaverage + "ºC";
             Item13.cont.Content = heaterduty;
-            Item14.cont.Content = currnetDouble + "A";
+            Item14.cont.Content = string.Format("{0:0.00A}", currentfloat / 2.0);
             Item6.cont.Content = t_time;
             Item4.Title = getMotorState(motorRun);
             Item4.cont.Content = motorRunTime.ToString() + "s";
-            Item26.cont.Content = (mode + 1).ToString();
+            ModeTimeView.label.Content = string.Format("모드{0}", mode + 1);
             DateTime now = DateTime.Now;
-            if (run)
+            
+            if (Item1Check.IsChecked.Value)
             {
-
-                if (Item1Check.IsChecked.Value)
-                {
-                    list1.Add(new KeyValuePair<DateTime, int>(now, heatertemp));
-                }
-                if (Item2Check.IsChecked.Value)
-                {
-                    list2.Add(new KeyValuePair<DateTime, int>(now, airtemp));
-                }
-                if (Item3Check.IsChecked.Value)
-                {
-                    list3.Add(new KeyValuePair<DateTime, int>(now, airheatertemp));
-                }
-                if (Item4Check.IsChecked.Value)
-                {
-                    list4.Add(new KeyValuePair<DateTime, int>(now, getMotorValue(motorRun)));
-                }
-                if (Item5Check.IsChecked.Value)
-                {
-                    list5.Add(new KeyValuePair<DateTime, int>(now, heateroff));
-                }
-                if (Item6Check.IsChecked.Value)
-                {
-                    list6.Add(new KeyValuePair<DateTime, int>(now, airaverage));
-                }
-                if (Item7Check.IsChecked.Value)
-                {
-                    list7.Add(new KeyValuePair<DateTime, int>(now, heaterduty));
-                }
-                if (Item8Check.IsChecked.Value)
-                {
-                    list8.Add(new KeyValuePair<DateTime, double>(now, currnetDouble));
-                }
+                chartView.ViewModel.AddData(seriesList[ItemIndex * 10], new DataPoint(total_minute, heatertemp));
+            }
+            if (Item2Check.IsChecked.Value)
+            {
+                chartView.ViewModel.AddData(seriesList[ItemIndex * 10 + 1], new DataPoint(total_minute, airtemp));
+            }
+            if (Item3Check.IsChecked.Value)
+            {
+                //if (IsNewVersion)
+                //{
+                //    chartView.ViewModel.AddData(seriesList[ItemIndex * 10 + 2], new DataPoint(total_minute, averOffTime));
+                //}
+                //else
+                //{
+                    chartView.ViewModel.AddData(seriesList[ItemIndex * 10 + 2], new DataPoint(total_minute, airheatertemp));
+                //}
+            }
+            if (Item4Check.IsChecked.Value)
+            {
+                chartView.ViewModel.AddData(seriesList[ItemIndex * 10 + 3], new DataPoint(total_minute, getMotorValue(motorRun)));
+            }
+            if (Item5Check.IsChecked.Value)
+            {
+                chartView.ViewModel.AddData(seriesList[ItemIndex * 10 + 4], new DataPoint(total_minute, heateroff));
+            }
+            if (Item6Check.IsChecked.Value)
+            {
+                chartView.ViewModel.AddData(seriesList[ItemIndex * 10 + 5], new DataPoint(total_minute, airaverage));
+            }
+            if (Item7Check.IsChecked.Value)
+            {
+                chartView.ViewModel.AddData(seriesList[ItemIndex * 10 + 6], new DataPoint(total_minute, heaterduty));
+            }
+            if (Item8Check.IsChecked.Value)
+            {
+                chartView.ViewModel.AddData(seriesList[ItemIndex * 10 + 7], new DataPoint(total_minute, currnetDouble / 2.0));
+            }
+            lock (chartView.ViewModel)
+            {
+                chartView.ViewModel.panXAxis(total_minute);
             }
         }
 
@@ -460,15 +641,28 @@ namespace SmartCaraTest.controls
             switch (model)
             {
                 case 0:
-                    return "PCS 400";
+                    return "PCS400";
                 case 1:
-                    return "PCS 500";
+                    return "PCS500";
                 case 2:
-                    return "PCS 350";
+                    return "PCS350";
+                case 3:
+                    return "PCS400_T";
+                case 4:
+                    return "PCS400P";
+                case 5:
+                    return "PCS400P_T";
+                case 6:
+                    return "PCS500N";
+                case 7:
+                    return "PCS400A_T_E";
+                case 8:
+                    return "PCS400P_T_E";
                 default:
                     return "";
             }
         }
+
 
         private int getMotorValue(int run)
         {
@@ -508,6 +702,91 @@ namespace SmartCaraTest.controls
                 default:
                     return "";
             }
+        }
+
+        private string GetErrorName(int[] errors0, int[] errors1)
+        {
+            Array.Reverse(errors0);
+            Array.Reverse(errors1);
+            StringBuilder builder = new StringBuilder();
+            int cnt = 0;
+            if (errors0 != null && errors0.Length > 0)
+                for (int i = 0; i < errors0.Length; i++)
+                {
+                    if (errors0[i] == 1)
+                    {
+                        cnt++;
+                        switch (i)
+                        {
+                            case 0:
+                                builder.AppendLine("모터 과부하", true);
+                                break;
+                            case 1:
+                                builder.AppendLine("모터 단선", true);
+                                break;
+                            case 2:
+                                builder.AppendLine("히터 동작 이상", true);
+                                break;
+                            case 3:
+                                if (errors0[2] != 1)
+                                    builder.AppendLine("히터 동작 이상", true);
+                                else
+                                    cnt--;
+                                break;
+                            case 4:
+                                builder.AppendLine("히터 센서 이상", true);
+                                break;
+                            case 5:
+                                builder.AppendLine("배기 온도 이상", true);
+                                break;
+                            case 6:
+                                builder.AppendLine("배기 센서 이상", true);
+                                break;
+                            case 7:
+                                builder.AppendLine("배기 팬 이상", true);
+                                break;
+                        }
+                    }
+                }
+            if (errors1 != null && errors1.Length > 0)
+                for (int i = 0; i < errors1.Length; i++)
+                {
+                    if (errors1[i] == 1)
+                    {
+                        cnt++;
+                        switch (i)
+                        {
+                            case 0:
+                                builder.AppendLine("이물질감지", true);
+                                break;
+                            case 1:
+                                builder.AppendLine("도어 열림", true);
+                                break;
+                            case 2:
+                                if (errors1[1] != 1)
+                                    builder.AppendLine("도어 열림", true);
+                                else
+                                    cnt--;
+                                break;
+                            case 3:
+                                builder.AppendLine("열풍 팬 에러", true);
+                                break;
+                            case 4:
+                                builder.AppendLine("열풍 히터 과열", true);
+                                break;
+                            case 5:
+                                builder.AppendLine("열풍 히터 오픈", true);
+                                break;
+                            case 6:
+                                builder.AppendLine("만수, 워터센서 오픈", true);
+                                break;
+                            case 7:
+                                builder.AppendLine("열풍 히터 저온", true);
+                                break;
+                        }
+                    }
+                }
+            return builder.ToString();
         }
     }
 }

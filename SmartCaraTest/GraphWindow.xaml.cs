@@ -170,10 +170,10 @@ namespace SmartCaraTest
             // Create a copy of specified series
             Series seriesCopy = chart.Series.Add(series.Name + "_Copy");
             seriesCopy.ChartType = series.ChartType;
-            foreach (DataPoint point in series.Points)
-            {
-                seriesCopy.Points.AddXY(point.XValue, point.YValues[0]);
-            }
+            //foreach (DataPoint point in series.Points)
+            //{
+            //    seriesCopy.Points.AddXY(point.XValue, point.YValues[0]);
+            //}
 
             // Hide copied series
             seriesCopy.IsVisibleInLegend = false;

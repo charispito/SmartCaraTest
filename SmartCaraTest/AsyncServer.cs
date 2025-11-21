@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace SmartCaraTest
@@ -74,7 +75,7 @@ namespace SmartCaraTest
                             {
                                 window.Dispatcher.BeginInvoke(new Action(() =>
                                 {
-                                    item.Value.channel.Item23.cont.Content = "응답없음";
+                                    item.Value.channel.StateBox.cont.Content = "응답없음";
                                 }));
                                 //item.Value.channel
                             }
@@ -118,15 +119,6 @@ namespace SmartCaraTest
             Console.WriteLine("Server Closed");
         }
 
-        private void DataReceived(IAsyncResult ar)
-        {
-            ClientData callbackClient = ar.AsyncState as ClientData;
-            int bytesRead = callbackClient.client.GetStream().EndRead(ar);
-            //string readString = Encoding.Default.GetString(callbackClient.readByteData, 0, bytesRead);
-            //Console.WriteLine("{0}번 사용자 : {1}", callbackClient.clientNumber, readString);
-            //callbackClient.client.GetStream().BeginRead(callbackClient.readByteData, 0, callbackClient.readByteData.Length, new AsyncCallback(DataReceived), callbackClient);
-        }
-
         private void OnConnected(ClientData data)
         {
             Console.WriteLine("connected");
@@ -138,15 +130,88 @@ namespace SmartCaraTest
                 if (channel != null)
                 {
                     window.channelList[data.TimeMills] = index;
+                    
+                    channel.Dispatcher.BeginInvoke(new Action(() => {
+                        channel.clearData();
+                        ClearCheck(channel);
+                    }));
                     channel.Channel = data.clientNumber - 10;
                     channel.TimeMills = data.TimeMills;
                     data.channel = channel;
+                    channel.OnCheckChanged += () => {
+                        data.readCompleteData.Clear();
+                        data.readParameterData.Clear();
+                        Array.Clear(data.readByteData, 0, data.readByteData.Length);
+                        Array.Clear(data.readByteParameterData, 0, data.readByteParameterData.Length);
+                        channel.Dispatcher.BeginInvoke(new Action(() => {
+                            if (channel.Item3Check.IsChecked.Value)
+                            {
+                                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item3Check, new object[0]);
+                                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item3Check, new object[0]);
+                            }
+                            if (channel.IsNewVersion)
+                            {
+                                channel.Item3.label.Content = "평균히터오프타임";
+                            }
+                            else
+                            {
+                                channel.Item3.label.Content = "열풍히터온도";
+                            }
+                        }));
+
+                    };
+                    channel.OnParameterLoadAction += (i) =>
+                    {
+                        if (data.readParameterData == null)
+                            data.readParameterData = new List<byte>();
+                        data.readParameterData.Clear();
+                        Array.Clear(data.readByteParameterData, 0, data.readByteParameterData.Length);
+                        data.parameterCnt = 2;
+                        if(i == 1)
+                            data.errorCnt = 2;
+                    };
                     channel.client = data.client;
                     window.Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        channel.Item23.cont.Content = "Connected";
+                        channel.StateBox.cont.Content = "Connected";
                     }));
                 }
+            }
+        }
+
+        private void ClearCheck(ChannelItem channel)
+        {
+            if (channel.Item1Check.IsChecked.Value)
+            {
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item1Check, new object[0]);
+            }
+            if (channel.Item2Check.IsChecked.Value)
+            {
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item2Check, new object[0]);
+            }
+            if (channel.Item3Check.IsChecked.Value)
+            {
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item3Check, new object[0]);
+            }
+            if (channel.Item4Check.IsChecked.Value)
+            {
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item4Check, new object[0]);
+            }
+            if (channel.Item5Check.IsChecked.Value)
+            {
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item5Check, new object[0]);
+            }
+            if (channel.Item6Check.IsChecked.Value)
+            {
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item6Check, new object[0]);
+            }
+            if (channel.Item7Check.IsChecked.Value)
+            {
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item7Check, new object[0]);
+            }
+            if (channel.Item8Check.IsChecked.Value)
+            {
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item8Check, new object[0]);
             }
         }
 
@@ -154,10 +219,14 @@ namespace SmartCaraTest
         {
             int index = window.channelList[data.TimeMills];
             ChannelItem channel = window.GetChannelItem(index);
+            //channel.Dispatcher.BeginInvoke(new Action(() => { ClearCheck(channel); }));
+            channel.client.Close();
             data.channel.Dispatcher.BeginInvoke(new Action(() =>
             {
-                channel.Item23.cont.Content = "Disconnected";
-                channel.clearData();
+                channel.StateBox.cont.Content = "Disconnected";
+                channel.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                channel.StateBox.cont.Background = new SolidColorBrush(Color.FromRgb(255, 0, 0));
+                //channel.clearData();
             }));
 
             window.channelList.Remove(data.TimeMills);
@@ -185,7 +254,7 @@ namespace SmartCaraTest
                 else
                 {
                     Console.WriteLine("setview");
-                    window.SetView(data.readCompleteData.ToArray(), data.channel);
+                    //window.SetView(data.readCompleteData.ToArray(), data.channel);
                     data.readCompleteData.Clear();
                 }
             }));

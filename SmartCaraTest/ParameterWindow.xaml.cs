@@ -138,6 +138,7 @@ namespace SmartCaraTest
                 {
                     byte[] command = Protocol.GetError(oneChannel.IsNewVersion);
                     command.PrintHex(1);
+                    oneChannel.setParameter();
                     port.Write(command, 0, command.Length);
                 };
                 WriteParamButton.Click += WriteParamButton_Click;
@@ -338,6 +339,7 @@ namespace SmartCaraTest
                 return;
             }
             byte[] command = GetParameterSettingData();
+
             port.Write(command, 0, command.Length);
             //PrintCommand(GetParameterSettingData());
         }
@@ -371,32 +373,40 @@ namespace SmartCaraTest
                         switch (i)
                         {
                             case 0:
-                                builder.AppendLine("모터 과부하", true);
-                                break;
+                                return "모터 과부하";
+                                //builder.AppendLine("모터 과부하", true);
+                                //break;
                             case 1:
-                                builder.AppendLine("모터 단선", true);
-                                break;
+                                return "모터 단선";
+                                //builder.AppendLine("모터 단선", true);
+                                //break;
                             case 2:
-                                builder.AppendLine("히터 동작 이상", true);
-                                break;
+                                return "히터 동작 이상";
+                                //builder.AppendLine("히터 동작 이상", true);
+                                //break;
                             case 3:
-                                if (errors0[2] != 1)
-                                    builder.AppendLine("히터 동작 이상", true);
-                                else
-                                    cnt--;
-                                break;
+                                return "히터 동작 이상";
+                                //if (errors0[2] != 1)
+                                //    builder.AppendLine("히터 동작 이상", true);
+                                //else
+                                //    cnt--;
+                                //break;
                             case 4:
-                                builder.AppendLine("히터 센서 이상", true);
-                                break;
+                                return "히터 센서 이상";
+                                //builder.AppendLine("히터 센서 이상", true);
+                                //break;
                             case 5:
-                                builder.AppendLine("배기 온도 이상", true);
-                                break;
+                                return "배기 온도 이상";
+                                //builder.AppendLine("배기 온도 이상", true);
+                                //break;
                             case 6:
-                                builder.AppendLine("배기 센서 이상", true);
-                                break;
+                                return "배기 센서 이상";
+                                //builder.AppendLine("배기 센서 이상", true);
+                                //break;
                             case 7:
-                                builder.AppendLine("배기 팬 이상", true);
-                                break;
+                                return "배기 팬 이상";
+                                //builder.AppendLine("배기 팬 이상", true);
+                                //break;
                         }
                     }
                 }
@@ -409,32 +419,40 @@ namespace SmartCaraTest
                         switch (i)
                         {
                             case 0:
-                                builder.AppendLine("이물질감지", true);
-                                break;
+                                return "이물질감지";
+                                //builder.AppendLine("이물질감지", true);
+                                //break;
                             case 1:
-                                builder.AppendLine("도어 열림", true);
-                                break;
+                                return "도어 열림";
+                                //builder.AppendLine("도어 열림", true);
+                                //break;
                             case 2:
-                                if (errors1[1] != 1)
-                                    builder.AppendLine("도어 열림", true);
-                                else
-                                    cnt--;
-                                break;
+                                return "도어 열림";
+                                //if (errors1[1] != 1)
+                                //    builder.AppendLine("도어 열림", true);
+                                //else
+                                //    cnt--;
+                                //break;
                             case 3:
-                                builder.AppendLine("열풍 팬 에러", true);
-                                break;
+                                return "열풍 팬 에러";
+                                //builder.AppendLine("열풍 팬 에러", true);
+                                //break;
                             case 4:
-                                builder.AppendLine("열풍 히터 과열", true);
-                                break;
+                                return "열풍 히터 과열";
+                                //builder.AppendLine("열풍 히터 과열", true);
+                                //break;
                             case 5:
-                                builder.AppendLine("열풍 히터 오픈", true);
-                                break;
+                                return "열풍 히터 오픈";
+                                //builder.AppendLine("열풍 히터 오픈", true);
+                                //break;
                             case 6:
-                                builder.AppendLine("만수, 워터센서 오픈", true);
-                                break;
+                                return "만수, 워터센서 오픈";
+                                //builder.AppendLine("만수, 워터센서 오픈", true);
+                                //break;
                             case 7:
-                                builder.AppendLine("열풍 히터 저온", true);
-                                break;
+                                return "열풍 히터 저온";
+                                //builder.AppendLine("열풍 히터 저온", true);
+                                //break;
                         }
                     }
                 }
@@ -455,11 +473,10 @@ namespace SmartCaraTest
             command.PrintHex(1);
             if (port != null)
             {
+                
                 port.Write(command, 0, command.Length);
             }
         }
-
-
 
         private void ReadParamButton_Click(object sender, RoutedEventArgs e)
         {
@@ -467,6 +484,8 @@ namespace SmartCaraTest
             command.PrintHex(1);
             if (port != null)
             {
+                oneChannel.setParameter();
+                //oneChannel.OnParameterLoadAction();
                 port.Write(command, 0, command.Length);
             }
         }
@@ -832,7 +851,7 @@ namespace SmartCaraTest
         {
             //int motor01 = data[4];
             //int motor02 = data[5];
-            int runmode0 = data[6];
+            int runmode0 = data[6] + 1;
             int heaterTemp0 = data[7];
             int heaterofftime0 = data[8];
             int exhaustTemp0 = data[9];
@@ -843,7 +862,7 @@ namespace SmartCaraTest
 
             Console.WriteLine("{0} {1} {2}", runmode0, heaterTemp0, heaterofftime0);
 
-            int runmode1 = data[16];
+            int runmode1 = data[16] + 1;
             int heaterTemp1 = data[17];
             int heaterofftime1 = data[18];
             int exhaustTemp1 = data[19];
@@ -853,7 +872,7 @@ namespace SmartCaraTest
             int intTimes2 = BitConverter.ToInt16(times2, 0);
 
 
-            int runmode2 = data[26];
+            int runmode2 = data[26] + 1;
             int heaterTemp2 = data[27];
             int heaterofftime2 = data[28];
             int exhaustTemp2 = data[29];
@@ -863,7 +882,7 @@ namespace SmartCaraTest
             int intTimes3 = BitConverter.ToInt16(times3, 0);
 
 
-            int runmode3 = data[36];
+            int runmode3 = data[36] + 1;
             int heaterTemp3 = data[37];
             int heaterofftime3 = data[38];
             int exhaustTemp3 = data[39];
@@ -873,7 +892,7 @@ namespace SmartCaraTest
             int intTimes4 = BitConverter.ToInt16(times4, 0);
 
 
-            int runmode4 = data[46];
+            int runmode4 = data[46] + 1;
             int heaterTemp4 = data[47];
             int heaterofftime4 = data[48];
             int exhaustTemp4 = data[49];

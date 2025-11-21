@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
-using SmartCaraTest.data;
+﻿using SmartCaraTest.data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

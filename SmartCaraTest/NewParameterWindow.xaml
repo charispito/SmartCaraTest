@@ -1,0 +1,116 @@
+﻿<Window x:Class="SmartCaraTest.NewParameterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SmartCaraTest" xmlns:controls="clr-namespace:SmartCaraTest.controls"
+        mc:Ignorable="d"
+        Title="NewParameterWindow" Height="920" Width="1650" SizeToContent="WidthAndHeight">
+    <Grid ShowGridLines="False">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="1100"/>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="20"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+        <Label Content="검사 항목 설정" FontSize="16" FontWeight="Black" Grid.Row="1" Grid.Column="1"/>
+        <controls:ErrorLabel Grid.Row="2" Grid.Column="1" Width="1100"/>
+        <Grid Grid.Row="1" Grid.Column="3" Grid.RowSpan="3" Width="200" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Label Content="운전" FontWeight="SemiBold" FontSize="18"/>
+            <Label Grid.Row="1" Content="정상 운전" FontSize="15" Margin="0, 10" FontWeight="Black"/>
+            <Label x:Name="RunCount" Grid.Row="2" BorderThickness="1" BorderBrush="Black" FontSize="17" Content="0" Margin="5, 0" HorizontalContentAlignment="Right"/>
+            <Label Grid.Column="1" Grid.Row="2" Content="회" FontSize="17"/>
+            <Button Background="Transparent" BorderBrush="Blue" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="4" Height="30" Margin="5, 10" FontSize="17" Content="READ" x:Name="ReadErrorButton"/>
+            <Button Background="Transparent" BorderBrush="Red" Foreground="Red" Grid.ColumnSpan="2" Grid.Row="5" Height="30" Margin="5, 0" FontSize="17" Content="RESET" x:Name="ResetErrorButton"/>
+        </Grid>
+        <Label Grid.Row="1" Grid.Column="5" Content="파일" FontSize="18" FontWeight="SemiBold"/>
+        <StackPanel Orientation="Vertical" Grid.Column="5" Grid.Row="2" Grid.RowSpan="6">
+            <TextBox x:Name="FileName" Grid.Row="2" Grid.Column="5" Margin="0,5" FontSize="14" BorderBrush="Black"/>
+            <ListBox x:Name="FileList" Grid.Row="3" Height="700" Grid.Column="5" Grid.RowSpan="4" BorderBrush="Black">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <!--<EventSetter Event="MouseDoubleClick" Handler="ListDoubleClick"/>-->
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+            <Grid Grid.Row="7" Grid.Column="5" Margin="0, 10, 0, 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="SaveButton" Content="저장" Height="25"/>
+                <Button x:Name="DeleteButton" Grid.Column="2" Height="25" Content="삭제"/>
+                <Button x:Name="RefreshButton" Grid.Column="4" Height="25" Content="새로고침"/>
+            </Grid>
+        </StackPanel>
+        <Label Content="Micom Parameter" Grid.Row="4" Grid.Column="1" FontSize="16" FontWeight="Black"/>
+        <Grid Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <controls:ParameterLine1 x:Name="DeviceGrid1"/>
+            <Button Grid.Column="1" Height="80" Content=">>" FontSize="20" FontWeight="Black" Margin="15, 0"/>
+            <controls:ParameterLine2 Grid.Row="1" x:Name="DeviceGrid2"/>
+            <controls:ParameterLine1 Grid.Column="2" x:Name="SetterGrid1"/>
+            <controls:ParameterLine2 Grid.Row="1" Grid.Column="2" x:Name="SetterGrid2"/>
+        </Grid>
+        <Grid Grid.Row="7" ShowGridLines="False" Grid.Column="1" Grid.ColumnSpan="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <controls:VentileFanMode x:Name="Ventile1" Grid.Row="0"/>
+            <controls:HeaterView Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" Margin="20, 0, 0, 0" Grid.ColumnSpan="2" Height="190"/>
+            <controls:VentileFanMode x:Name="Ventile2" Grid.Column="4" Grid.Row="0" Height="Auto"/>
+            <controls:HeaterView Grid.Column="5" Grid.Row="0" Grid.RowSpan="3" Margin="20, 0, 0, 0" Grid.ColumnSpan="2" Height="190"/>
+            <Button x:Name="ReadParamButton" VerticalAlignment="Bottom" Grid.Row="6" Height="30" Content="PARAMETER READ" FontSize="15" Background="Transparent" Foreground="Blue" BorderBrush="Blue"/>
+            <Button x:Name="WriteParamButton" VerticalAlignment="Bottom" Grid.Row="6" Grid.Column="4" Height="30" Content="PARAMETER WRITE" FontSize="15" Background="Transparent" Foreground="Red" BorderBrush="Red"/>
+        </Grid>
+    </Grid>
+</Window>

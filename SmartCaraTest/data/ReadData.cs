@@ -12,7 +12,7 @@ namespace SmartCaraTest.data
         public int mode { get; set; }
         public string remain_time { get; set; }
         public int heater_temp { get; set; }
-        public int heater_off_time { get; set; }
+        public float heater_off_time { get; set; }
         public int air_temp { get; set; }
         public int fan_speed { get; set; }
         public int hot_air_temp { get; set; }
@@ -24,5 +24,6 @@ namespace SmartCaraTest.data
         public int off_average { get; set; }
         public int air_sum { get; set; }
         public int air_average { get; set; }
+        public string model { get; set; }
     }
 }

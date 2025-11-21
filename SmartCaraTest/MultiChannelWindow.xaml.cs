@@ -63,12 +63,9 @@ namespace SmartCaraTest
             item.Item15.Title = "열풍팬 풍량";
             item.Item16.Title = "만수 감지";
 
-            item.Item21.Title = "Version";
-            item.Item22.Title = "Compile";
-            item.Item23.Title = "상태";
-            item.Item24.Title = "남은 시간";
-            item.Item25.Title = "Error";
-            item.Item26.Title = "MODE";
+            item.VersionBox.Title = "Version";
+            item.CompileBox.Title = "Compile";
+            item.StateBox.Title = "상태";
 
             var info = getIndex(index);
             Grid.SetColumn(item, info.Column);

@@ -18,10 +18,10 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.ColumnSpan="3" x:Name="Title" FontWeight="Black" Foreground="Black" FontSize="13"/>
-            <Label Grid.Row="2" HorizontalContentAlignment="Center" x:Name="Item1Title" FontWeight="Black" Foreground="Black" FontSize="17"/>
-            <Label x:Name="Value" Grid.Column="1" Grid.Row="2" FontSize="17" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
-            <Label Grid.Row="2" Grid.Column="2" FontSize="17" FontWeight="Black" Margin="10,0" x:Name="Unit"/>
+            <Label Grid.ColumnSpan="3" x:Name="Title" FontWeight="Black" Padding="0" Foreground="Black" FontSize="13"/>
+            <Label Grid.Row="2" HorizontalContentAlignment="Center" Padding="0" x:Name="Item1Title" FontWeight="Black" Foreground="Black" FontSize="17"/>
+            <Label x:Name="Value" Grid.Column="1" Grid.Row="2" Padding="0" FontSize="16" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Right"/>
+            <Label Grid.Row="2" Grid.Column="2" FontSize="16" Padding="0" FontWeight="Black" Margin="10,0" x:Name="Unit"/>
         </Grid>
     </Border>
 </UserControl>

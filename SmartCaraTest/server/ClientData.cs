@@ -14,17 +14,22 @@ namespace SmartCaraTest.util
         public int ResponseCount { get; set; }
         public bool Start { get; set; } = false;
         public DateTime StartTime { get; set; }
+
+        public int initCount = 2;
         public TcpClient client { get; set; }
         public byte[] readByteParameterData { get; set; }
+        public byte[] readByteData { get; set; }
         public int clientNumber { get; set; }
         public long TimeMills { get; set; }
+        public int parameterCnt = 0;
+        public int errorCnt = 0;
         public List<byte> readCompleteData { get; set; }
         public List<byte> readParameterData { get; set; }
         public bool Run = true;
         public ClientData(TcpClient client)
         {
             this.client = client;
-            //this.readByteData = new byte[57];
+            this.readByteData = new byte[57];
             this.readByteParameterData = new byte[70];
             ResponseCount = 0;
             Start = false;

@@ -46,6 +46,15 @@ namespace SmartCaraTest.util
             }
             Console.WriteLine(hex);
         }
+        public static void PrintInt(this int[] arr)
+        {
+            string hex = "";
+            foreach (int i in arr)
+            {
+                hex += " " + i.ToString();
+            }
+            Console.WriteLine(hex);
+        }
 
         public static void PrintHex(this byte[] arr, int type)
         {
@@ -82,6 +91,16 @@ namespace SmartCaraTest.util
         {
             byte[] result = new byte[length];
             Buffer.BlockCopy(arr, 0, result, 0, length);
+            return result;
+        }
+        public static byte[] Slice(this byte[] arr, int startIndex, int length)
+        {
+            byte[] result = new byte[length];
+            if(startIndex >= arr.Length)
+            {
+                return null;
+            }
+            Buffer.BlockCopy(arr, startIndex, result, 0, length);
             return result;
         }
         public static string Clear(this string str)

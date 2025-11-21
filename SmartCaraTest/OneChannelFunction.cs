@@ -1,4 +1,5 @@
-﻿using SmartCaraTest.data;
+﻿using OxyPlot;
+using SmartCaraTest.data;
 using SmartCaraTest.util;
 using System;
 using System.Collections.Generic;
@@ -25,45 +26,11 @@ namespace SmartCaraTest
                 hex += " " + b.ToString("X2");
             }
             return hex;
-        }
-
-        public void Log(String msg)
-        {
-            string FilePath = Directory.GetCurrentDirectory() + @"\Logs\" + DateTime.Today.ToString("yyyyMMdd") + ".log";
-            string DirPath = Directory.GetCurrentDirectory() + @"\Logs";
-            string temp;
-            DirectoryInfo di = new DirectoryInfo(DirPath);
-            FileInfo fi = new FileInfo(FilePath);
-            try
-            {
-                if (di.Exists != true) Directory.CreateDirectory(DirPath);
-                if (fi.Exists != true)
-                {
-                    using (StreamWriter sw = new StreamWriter(FilePath))
-                    {
-                        temp = string.Format("[{0}] {1}", GetDateTime(), msg);
-                        sw.WriteLine(temp);
-                        sw.Close();
-                    }
-                }
-                else
-                {
-                    using (StreamWriter sw = File.AppendText(FilePath))
-                    {
-                        temp = string.Format("[{0}] {1}", GetDateTime(), msg);
-                        sw.WriteLine(temp);
-                        sw.Close();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-
-            }
-        }
+        }       
 
         private void CheckCommand(byte[] array)
         {
+            Console.WriteLine("Function CheckCommand below...");
             array.PrintHex(1);
             byte check = Protocol.GetCheckSum(array, 1, array.Length - 3);
             try
@@ -113,16 +80,28 @@ namespace SmartCaraTest
             {
                 return;
             }
+            
             long total_second = (long)TestTime.TotalSeconds;
             double total_minute = total_second/60;
             double remain_second = (double)total_second%60/100.0;
-            total_minute += remain_second;
-            if(total_minute >= Chart._XMax)
+            double remain_value = 0.40 / 60;
+            if (total_second > 0)
             {
-                Chart._XMax += 10;
-                Chart.MinutesAxis.Maximum = Chart._XMax;
-                Chart.setViewPort(60);
+                Console.WriteLine("22");
+                total_minute += (remain_second + remain_value * (total_second % 60));                
             }
+            else
+            {
+                Console.WriteLine("11");
+                total_minute += remain_second;
+            }
+
+            //if(total_minute >= Chart._XMax)
+            //{
+            //    Chart._XMax += 10;
+            //    Chart.MinutesAxis.Maximum = Chart._XMax;
+            //    Chart.setViewPort(60);
+            //}
             Console.WriteLine("total: {0}", total_minute);
             int motorRun = data[5];
             int heateroff = data[7]; //히터 오프타임
@@ -164,7 +143,8 @@ namespace SmartCaraTest
             int month = data[52];
             int day = data[53];
             int version = data[54];
-            string micom = $"{year}.{month}.{day}. ver {version}";
+            string micom = $"{year}.{month}.{day} ver {version}";
+            //string micom = $"{year}.{month}.{day}. ver {version}";
             byte error0 = data[49];
             byte error1 = data[50];
             int[] binary0 = Enumerable.Range(1, 8).Select(i => error0 / (1 << (8 - i)) % 2).ToArray();
@@ -209,7 +189,6 @@ namespace SmartCaraTest
                 channel.Item16.cont.Content = "감지";
             }
             int motorRunTime = data[12];
-            int operationTime = 10;
             int cw_on = data[22];
             int cw_off = data[23];
             int ccw_on = data[24];
@@ -225,12 +204,33 @@ namespace SmartCaraTest
             int fan_duty = data[29];
             int hot_air_fan_duty = data[30];
             float heateroffTime = (float)(heateroff / 10.0f);
+            float averOffTime = (float)(airheatertemp / 10.0f);
             DateTime now = DateTime.Now;
-            if (channel.run)
-            {
+            //if (channel.run)
+            //{
+            //if (channel.IsNewVersion)
+            //{
+            //    ReadData read = new ReadData()
+            //    {
+            //        date = DateTime.Now.ToString("yyyy-MM-dd_HH_mm_ss"),
+            //        mode = mode + 1,
+            //        remain_time = time,
+            //        heater_temp = heatertemp,
+            //        heater_off_time = averOffTime,
+            //        air_temp = airtemp,
+            //        fan_speed = fan_duty,
+            //        hot_air_temp = airheatertemp,
+            //        hot_air_ontime = heaterduty,
+            //        motor = getMotorState(motorRun),
+            //        motor_current = currentfloat / 2.0
+            //    };
+            //    channel.WriteFile(read);
+            //}
+            //else
+            //{
                 ReadData read = new ReadData()
                 {
-                    date = DateTime.Now.ToString("yyyy-MM-dd HH_mm_ss"),
+                    date = DateTime.Now.ToString("yyyy-MM-dd_HH_mm_ss"),
                     mode = mode + 1,
                     remain_time = time,
                     heater_temp = heatertemp,
@@ -240,39 +240,62 @@ namespace SmartCaraTest
                     hot_air_temp = airheatertemp,
                     hot_air_ontime = heaterduty,
                     motor = getMotorState(motorRun),
-                    motor_current = currnetDouble
+                    motor_current = currentfloat / 2.0
                 };
                 channel.WriteFile(read);
-            }
-            
+            //}
+            //ReadData read = new ReadData()
+            //{
+            //    date = DateTime.Now.ToString("yyyy-MM-dd_HH_mm_ss"),
+            //    mode = mode + 1,
+            //    remain_time = time,
+            //    heater_temp = heatertemp,
+            //    heater_off_time = heateroff,
+            //    air_temp = airtemp,
+            //    fan_speed = fan_duty,
+            //    hot_air_temp = airheatertemp,
+            //    hot_air_ontime = heaterduty,
+            //    motor = getMotorState(motorRun),
+            //    motor_current = currentfloat / 2.0
+            //};
+            //Console.WriteLine("write {0}", data.Length);
+            //channel.WriteFile(read);
+            //}
+
             DetailView.operation.Value.Content = runTime;
 
             DetailView.motor.Value11.Content = cw_on; //motor cw on
-            DetailView.motor.Value12.Content = cw_off; //motor cw off
-            DetailView.motor.Value21.Content = ccw_on; //motor ccw on
+            DetailView.motor.Value12.Content = ccw_on; //motor cw off
+            DetailView.motor.Value21.Content = cw_off; //motor ccw on
             DetailView.motor.Value22.Content = ccw_off; //motor ccw off
 
             DetailView.material.Value.Content = foreign_time; //foreign time
-            DetailView.overflow.Value11.Content = foreign_current; //overflow current1
+            DetailView.overflow.Value11.Content = string.Format("{0: 0.0#A}", (float)(foreign_current / 10.0f)); //overflow current1
             DetailView.overflow.Value12.Content = foreign_count; //overflow count1
-            DetailView.overflow.Value21.Content = motor_over_current; //overflow current2
+            DetailView.overflow.Value21.Content = string.Format("{0: 0.0#A}", (float)(motor_over_current / 10.0f)); //overflow current2
             DetailView.overflow.Value22.Content = motor_over_count; //overflow count2
 
             DetailView.temper.Value1.Content = heater_setting_temp;
-            DetailView.temper.Value2.Content = heater_setting_offtime;
+            DetailView.temper.Value2.Content = string.Format("{0: 0.0#}", (float)(heater_setting_offtime / 10.0f));
             DetailView.temper.Value3.Content = ventile_temp;
             DetailView.temper.Value4.Content = fan_duty;
 
-            DetailView.heater.Value1.Content = 0;
-            DetailView.heater.Value2.Content = hot_air_fan_duty;
+            DetailView.heater.Value1.Content = airheatertemp;
+            DetailView.heater.Value2.Content = heaterduty;
 
             
-            channel.Item21.cont.Content = getModelName(data[48]);
-            channel.Item22.cont.Content = micom;
-            channel.Item24.cont.Content = time;
+            channel.VersionBox.cont.Content = getModelName(data[48]);
+            channel.CompileBox.cont.Content = micom;
             channel.Item1.cont.Content = heatertemp + "ºC";
             channel.Item2.cont.Content = airtemp + "ºC";
-            channel.Item3.cont.Content = airheatertemp + "ºC";
+            if (channel.IsNewVersion)
+            {
+                channel.Item3.cont.Content = averOffTime + "ms";
+            }
+            else
+            {
+                channel.Item3.cont.Content = airheatertemp + "ºC";
+            }
             channel.Item5.cont.Content = fan_duty + "%";
             channel.Item15.cont.Content = hot_air_fan_duty + "%";
             channel.Item11.cont.Content = heateroffTime + "ms";
@@ -282,51 +305,78 @@ namespace SmartCaraTest
             channel.Item6.cont.Content = t_time;
             channel.Item4.Title = getMotorState(motorRun);
             channel.Item4.cont.Content = motorRunTime.ToString() + "s";
-            channel.Item26.cont.Content = (mode + 1).ToString();
+            channel.ModeTimeView.label.Content = string.Format("모드{0}", mode + 1);
+            channel.ModeTimeView.cont.Content = time;
+            //channel.Item26.cont.Content = (mode + 1).ToString();
             //if (channel.run)
             //132974952879387151
             //132974952889504627
             //132974952899671426
             
             Console.WriteLine("NOW: " + DateTime.Now.ToFileTime());
-                if (channel.Item1Check.IsChecked.Value)
-                {
-                    channel.list1.Add(new KeyValuePair<double, int>(total_minute, heatertemp));
-                }
-                if (channel.Item2Check.IsChecked.Value)
-                {
-                    channel.list2.Add(new KeyValuePair<double, int>(total_minute, airtemp));
-                }
-                if (channel.Item3Check.IsChecked.Value)
-                {
-                    channel.list3.Add(new KeyValuePair<double, int>(total_minute, airheatertemp));
-                }
-                if (channel.Item4Check.IsChecked.Value)
-                {
-                    channel.list4.Add(new KeyValuePair<double, int>(total_minute, getMotorValue(motorRun)));
-                }
-                if (channel.Item5Check.IsChecked.Value)
-                {
-                    channel.list5.Add(new KeyValuePair<double, int>(total_minute, heateroff));
-                }
-                if (channel.Item6Check.IsChecked.Value)
-                {
-                    channel.list6.Add(new KeyValuePair<double, int>(total_minute, airaverage));
-                }
-                if (channel.Item7Check.IsChecked.Value)
-                {
-                    channel.list7.Add(new KeyValuePair<double, int>(total_minute, heaterduty));
-                }
-                if (channel.Item8Check.IsChecked.Value)
-                {
-                    channel.list8.Add(new KeyValuePair<double, double>(total_minute, currnetDouble/2.0));
-                }
+            if (channel.Item1Check.IsChecked.Value)
+            {
+                channel.chartView.ViewModel.AddData(seriesList[10], new DataPoint(total_minute, heatertemp));
+                //channel.list1.Add(new KeyValuePair<double, int>(total_minute, heatertemp));
+            }
+            if (channel.Item2Check.IsChecked.Value)
+            {
+                channel.chartView.ViewModel.AddData(seriesList[11], new DataPoint(total_minute, airtemp));
+                //channel.list2.Add(new KeyValuePair<double, int>(total_minute, airtemp));
+            }
+            if (channel.Item3Check.IsChecked.Value)
+            {
+                //if (channel.IsNewVersion)
+                //{
+                //    channel.chartView.ViewModel.AddData(seriesList[12], new DataPoint(total_minute, averOffTime));
+                //}
+                //else
+                //{
+                    channel.chartView.ViewModel.AddData(seriesList[12], new DataPoint(total_minute, airheatertemp));
+                //}
+                //channel.chartView.ViewModel.AddData(seriesList[12], new DataPoint(total_minute, airheatertemp));
+                //channel.list3.Add(new KeyValuePair<double, int>(total_minute, airheatertemp));
+            }
+            if (channel.Item4Check.IsChecked.Value)
+            {
+                channel.chartView.ViewModel.AddData(seriesList[13], new DataPoint(total_minute, getMotorValue(motorRun)));
+                //channel.list4.Add(new KeyValuePair<double, int>(total_minute, getMotorValue(motorRun)));
+            }
+            if (channel.Item5Check.IsChecked.Value)
+            {
+                channel.chartView.ViewModel.AddData(seriesList[14], new DataPoint(total_minute, heateroff));
+                //channel.list5.Add(new KeyValuePair<double, int>(total_minute, heateroff));
+            }
+            if (channel.Item6Check.IsChecked.Value)
+            {
+                channel.chartView.ViewModel.AddData(seriesList[15], new DataPoint(total_minute, airaverage));
+                //channel.list6.Add(new KeyValuePair<double, int>(total_minute, airaverage));
+            }
+            if (channel.Item7Check.IsChecked.Value)
+            {
+                channel.chartView.ViewModel.AddData(seriesList[16], new DataPoint(total_minute, heaterduty));
+                //channel.list7.Add(new KeyValuePair<double, int>(total_minute, heaterduty));
+            }
+            if (channel.Item8Check.IsChecked.Value)
+            {
+                channel.chartView.ViewModel.AddData(seriesList[17], new DataPoint(total_minute, currnetDouble / 2.0));
+                //channel.list8.Add(new KeyValuePair<double, double>(total_minute, currnetDouble / 2.0));
+            }
+            channel.chartView.ViewModel.panXAxis(total_minute);
             //}
         }
 
+        //CC 00 A0 07 00 A7 EF
+        //CC 00 A0 39 01 01 50 50 45 11 30 10 01 11 01 01 01 01 01 01 14 28 04 28 04 5F 46 58 00 00 14 11 20 11 20 44 50 50 00 00 00 00 00 00 00 00 00 00 00 00 00 16 04 16 00 12 EF
         public void OnStart()
         {
-            TestTime = TimeSpan.Zero;
+            if (receivedData == null)
+                receivedData = new List<byte>();
+            //receivedData.Clear();
+            if (parameterReceived == null)
+                parameterReceived = new List<byte>();
+            //parameterReceived.Clear();
+            //TestTime = TimeSpan.Zero;
         }
 
         private string GetErrorName(int[] errors0, int[] errors1)
@@ -419,16 +469,29 @@ namespace SmartCaraTest
             switch (model)
             {
                 case 0:
-                    return "PCS 400";
+                    return "PCS400";
                 case 1:
-                    return "PCS 500";
+                    return "PCS500";
                 case 2:
-                    return "PCS 350";
+                    return "PCS350";
+                case 3:
+                    return "PCS400_T";
+                case 4:
+                    return "PCS400P";
+                case 5:
+                    return "PCS400P_T";
+                case 6:
+                    return "PCS500N";
+                case 7:
+                    return "PCS400A_T_E";
+                case 8:
+                    return "PCS400P_T_E";
                 default:
                     return "";
             }
         }
 
+        //CC 00 A0 57 01 01 50 50 45 11 30 10 01 11 01 01 01 01 01 01 14 28 04 28 04 5F 46 58 00 00 14 11 20 11 20 44 50 50 00 00 00 00 00 00 00 00 00 00 00 00 16 04 16 00 12 EF
         private int getMotorValue(int run)
         {
             Console.WriteLine("Value:{0}", run);

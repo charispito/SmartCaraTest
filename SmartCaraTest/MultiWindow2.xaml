@@ -6,38 +6,40 @@
         xmlns:local="clr-namespace:SmartCaraTest" xmlns:controls="clr-namespace:SmartCaraTest.controls"
         mc:Ignorable="d"
         Title="스마트카라" Height="900" Width="1850" WindowStartupLocation="CenterOwner">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="240"/>
-            <RowDefinition Height="240"/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition Height="20"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="20"/>
-            <ColumnDefinition Width="900"/>
-            <ColumnDefinition Width="900"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="20"/>
-        </Grid.ColumnDefinitions>
-        <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Height="30">
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="205"/>
+                <RowDefinition Height="205"/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition Height="20"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="900"/>
+                <ColumnDefinition Width="900"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="5" x:Name="Version" FontSize="16" Content="Exit" Visibility="Collapsed"/>
+            <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Height="30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="5" x:Name="Version" FontSize="16" Content="Exit" Visibility="Collapsed"/>
+            </Grid>
+            <controls:ChannelItem Grid.Row="2" Grid.Column="1" x:Name="Item1"/>
+            <controls:ChannelItem Grid.Row="2" Grid.Column="2" x:Name="Item2"/>
+            <controls:ChannelItem Grid.Row="3" Grid.Column="1" x:Name="Item3"/>
+            <controls:ChannelItem Grid.Row="3" Grid.Column="2" x:Name="Item4"/>
+            <controls:OxyView x:Name="Chart" Grid.Row="4" Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="3"/>
         </Grid>
-        <controls:ChannelItem Grid.Row="2" Grid.Column="1" x:Name="Item1"/>
-        <controls:ChannelItem Grid.Row="2" Grid.Column="2" x:Name="Item2"/>
-        <controls:ChannelItem Grid.Row="3" Grid.Column="1" x:Name="Item3"/>
-        <controls:ChannelItem Grid.Row="3" Grid.Column="2" x:Name="Item4"/>
-        <controls:WPFChartView x:Name="Chart" Grid.Row="4" Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="3"/>
-    </Grid>
+    </ScrollViewer>
 </Window>

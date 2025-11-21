@@ -19,6 +19,8 @@ namespace SmartCaraTest.util
         public delegate void DataReceiveHandler(ClientData client);
         public DataReceiveHandler OnReceived;
         public bool parameter = false;
+        private byte[] welcome = { 0x02, 0x4D, 0x59, 0x20, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x3A, 0x31, 0x03, 0x0D, 0x0A };
+        private byte[] blank = { 0x0D, 0x0A };
 
         public void AddClient(TcpClient newClient)
         {
@@ -28,6 +30,7 @@ namespace SmartCaraTest.util
             try
             {
                 clientData.Run = true;
+                clientData.initCount = 2;
                 Thread check = new Thread(new ParameterizedThreadStart(CheckClient));
                 check.Start(clientData);
                 Thread read = new Thread(new ParameterizedThreadStart(asyncReadAsync));
@@ -43,6 +46,14 @@ namespace SmartCaraTest.util
             }
         }
 
+        private void precess_receive(SocketAsyncEventArgs e)
+        {
+            if(e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
+            {
+                
+            }
+        }
+
         private async void asyncReadAsync(object obj)
         {
             ClientData clientdata = obj as ClientData;
@@ -50,212 +61,276 @@ namespace SmartCaraTest.util
             {
                 try
                 {
-                    int result = await clientdata.client.GetStream().ReadAsync(clientdata.readByteParameterData, 0, 70);
-                    byte[] slice = clientdata.readByteParameterData.Slice(result);
-                    Array.Clear(clientdata.readByteParameterData, 0, result);
-                    if (clientdata.channel.run)
+                    int result = 0;
+                    if(clientdata.parameterCnt > 0)
                     {
-                        Console.WriteLine("ALL: {0}, Length: {1} Data: {2}", clientdata.readCompleteData.Count, result, slice.byteToString());
-                    }
-                    if (result > 0)
-                    {
-                        if (clientdata.readCompleteData.Count == 0)
+                        //Thread.Sleep(110);
+                        result = await clientdata.client.GetStream().ReadAsync(clientdata.readByteParameterData, 0, 70);
+                        if (clientdata.initCount > 0)
                         {
-                            if (clientdata.channel.IsNewVersion)
+                            Array.Clear(clientdata.readByteParameterData, 0, result);
+                            clientdata.initCount--;
+                            Console.WriteLine("init");
+                        }
+                    }
+                    else
+                    {
+                        //Thread.Sleep(60);
+
+                        //result = clientdata.client.GetStream().Read(clientdata.readByteData, 0, 57);
+                        result = await clientdata.client.GetStream().ReadAsync(clientdata.readByteData, 0, 57);
+                        if (clientdata.initCount > 0)
+                        {
+                            Array.Clear(clientdata.readByteData, 0, result);
+                            clientdata.initCount--;
+                            Console.WriteLine("init");
+                        }
+                    }
+                    
+                    if(result > 0)
+                    {
+                        Console.WriteLine("-----------------");
+                        Console.WriteLine("lenght: {0}",result);
+                        Console.WriteLine("-----------------");
+                        if (clientdata.channel.IsNewVersion)
+                        {
+                            if (clientdata.parameterCnt > 0)
                             {
-                                if (slice[0] != 0x12)
+                                byte[] slice = clientdata.readByteParameterData.Slice(result);
+                                Array.Clear(clientdata.readByteParameterData, 0, result);
+                                Console.WriteLine("param read");
+                                //slice.PrintHex(1);
+                                clientdata.readParameterData.AddRange(slice);
+                                if(clientdata.readParameterData.Count >= 70)
                                 {
-                                    Console.WriteLine("Head Error {0}", slice.byteToString());
-                                }
-                                else
-                                {
-                                    clientdata.readCompleteData.AddRange(slice);
-                                    if (slice.Last() == 0x34)
+                                    byte[] receive = clientdata.readParameterData.ToArray();
+                                    int s_idx = getNewStxIndex(receive);
+                                    //receive.PrintHex(1);
+                                    if (s_idx == 0)
                                     {
-                                        if (slice.Length > 3 && clientdata.readCompleteData[3] == clientdata.readCompleteData.Count)
+                                        if (receive.Length > 70)
                                         {
-                                            //완료
-                                            //Console.WriteLine("complete1: {0}", clientdata.readCompleteData.ToArray().byteToString());
-                                            clientdata.channel.Dispatcher.Invoke(new Action(() => {
-                                                switch (clientdata.readCompleteData[2])
-                                                {
-                                                    case 0xAA:
-                                                        clientdata.channel.SetView(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0x99:
-                                                        clientdata.channel.ParameterWindow.setParameter(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0xB9:
-                                                        clientdata.channel.ParameterWindow.setError(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0xA0:
-                                                        clientdata.channel.SetView(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                }
-                                                clientdata.ResponseCount++;
-                                                clientdata.channel.NonResponse = 0;
-                                                clientdata.readCompleteData.Clear();
-                                            }));
+                                            byte[] cmd = receive.Slice(70);
+                                            byte[] etc = receive.Slice(70, clientdata.readParameterData.Count - 70);
+                                            clientdata.readParameterData.Clear();
+                                            clientdata.readParameterData.AddRange(etc);
+                                            CheckCommand(cmd, clientdata);
                                         }
                                         else
                                         {
-                                            if (clientdata.readCompleteData.Count > 70)
-                                                clientdata.readCompleteData.Clear();
+                                            clientdata.readParameterData.Clear();
+                                            CheckCommand(receive, clientdata);
+                                        }
+                                    }
+                                    else if (s_idx == -1)
+                                    {
+                                        clientdata.readParameterData.Clear();
+                                    }
+                                    else
+                                    {
+                                        if (receive[s_idx - 1] == 0x34)
+                                        {
+                                            byte[] command = receive.Slice(s_idx);
+                                            byte[] etc = receive.Slice(s_idx, receive.Length - s_idx);
+
+                                            if (command.Length == 70)
+                                            {
+                                                clientdata.readParameterData.Clear();
+                                                clientdata.readParameterData.AddRange(etc);
+                                            }
+                                            else
+                                            {
+                                                clientdata.readParameterData.Clear();
+                                                clientdata.readParameterData.AddRange(etc);
+                                            }
+                                            CheckCommand(command, clientdata);
+                                        }
+                                        else
+                                        {
+                                            clientdata.readParameterData.Clear();
                                         }
                                     }
                                 }
                             }
                             else
                             {
-                                if (slice[0] != 0xCC)
+                                byte[] slice = clientdata.readByteData.Slice(result);
+                                Array.Clear(clientdata.readByteData, 0, clientdata.readByteData.Length);
+                                clientdata.readCompleteData.AddRange(slice);
+                                //slice.PrintHex(1);
+                                if (clientdata.readCompleteData.Count >= 57)
                                 {
-                                    Console.WriteLine("Head Error {0}", slice.byteToString());
-                                }
-                                else
-                                {
-                                    clientdata.readCompleteData.AddRange(slice);
-                                    if (slice.Last() == 0xEF)
+                                    byte[] receive = clientdata.readCompleteData.ToArray();
+                                    int s_idx = getNewStxIndex(receive);
+                                    Console.WriteLine("s_idx={0} length={1}", s_idx, receive.Length);
+                                    //receive.PrintHex(1);
+                                    if (s_idx == 0)
                                     {
-                                        if (slice.Length > 3 && clientdata.readCompleteData[3] == clientdata.readCompleteData.Count)
+                                        if (receive.Length > 57)
                                         {
-                                            //완료
-                                            //Console.WriteLine("complete2: {0}", clientdata.readCompleteData.ToArray().byteToString());
-                                            clientdata.channel.Dispatcher.Invoke(new Action(() => {
-                                                switch (clientdata.readCompleteData[2])
-                                                {
-                                                    case 0xAA:
-                                                        clientdata.channel.SetView(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0x99:
-                                                        clientdata.channel.ParameterWindow.setParameter(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0xB9:
-                                                        clientdata.channel.ParameterWindow.setError(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0xA0:
-                                                        clientdata.channel.SetView(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                }
-                                                clientdata.ResponseCount++;
-                                                clientdata.channel.NonResponse = 0;
-                                                clientdata.readCompleteData.Clear();
-                                            }));
+                                            byte[] cmd = receive.Slice(57);
+                                            byte[] etc = receive.Slice(57, clientdata.readCompleteData.Count - 57);
+                                            clientdata.readCompleteData.Clear();
+                                            clientdata.readCompleteData.AddRange(etc);
+                                            CheckCommand(cmd, clientdata);
                                         }
                                         else
                                         {
-                                            if (clientdata.readCompleteData.Count > 70)
-                                                clientdata.readCompleteData.Clear();
+                                            clientdata.readCompleteData.Clear();
+                                            CheckCommand(receive, clientdata);
                                         }
                                     }
+                                    else if (s_idx == -1)
+                                    {
+                                        clientdata.readCompleteData.Clear();
+                                    }
+                                    else
+                                    {
+                                        if (receive[s_idx - 1] == 0x34)
+                                        {
+                                            byte[] command = receive.Slice(s_idx);
+                                            byte[] etc = receive.Slice(s_idx, receive.Length - s_idx);
+
+                                            if (command.Length == 57)
+                                            {
+                                                clientdata.readCompleteData.Clear();
+                                                clientdata.readCompleteData.AddRange(etc);
+                                            }
+                                            else
+                                            {
+                                                clientdata.readCompleteData.Clear();
+                                                clientdata.readCompleteData.AddRange(etc);
+                                            }
+                                            CheckCommand(command, clientdata);
+                                        }
+                                        else
+                                        {
+                                            clientdata.readCompleteData.Clear();
+                                        }
+                                    }
+
                                 }
                             }
                         }
                         else
                         {
-                            if (clientdata.channel.IsNewVersion)
+                            if (clientdata.parameterCnt > 0)
                             {
-                                if (clientdata.readCompleteData[0] != 0x12)
+                                byte[] slice = clientdata.readByteParameterData.Slice(result);
+                                Array.Clear(clientdata.readByteParameterData, 0, result);
+                                clientdata.readParameterData.AddRange(slice);
+                                if (clientdata.readParameterData.Count >= 70)
                                 {
-                                    Console.WriteLine("Head Error: {0}", clientdata.readCompleteData.ToArray().byteToString());
-                                    clientdata.readCompleteData.Clear();
-                                }
-                                else
-                                {
-
-                                    clientdata.readCompleteData.AddRange(slice);
-                                    if (clientdata.readCompleteData.Count > 3 && clientdata.readCompleteData[3] == clientdata.readCompleteData.Count)
+                                    byte[] receive = clientdata.readParameterData.ToArray();
+                                    int s_idx = getStxIndex(receive);
+                                    Console.WriteLine("s_idx={0} length={1}", s_idx, receive.Length);
+                                    //receive.PrintHex(1);
+                                    if (s_idx == 0)
                                     {
-                                        if (clientdata.readCompleteData.Last() == 0x34)
+                                        if (receive.Length > 70)
                                         {
-                                            //완료
-                                            //Console.WriteLine("complete3: {0}", clientdata.readCompleteData.ToArray().byteToString());
-                                            clientdata.channel.Dispatcher.Invoke(new Action(() => {
-                                                switch (clientdata.readCompleteData[2])
-                                                {
-                                                    case 0xAA:
-                                                        clientdata.channel.SetView(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0x99:
-                                                        clientdata.channel.ParameterWindow.setParameter(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0xB9:
-                                                        clientdata.channel.ParameterWindow.setError(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0xA0:
-                                                        clientdata.channel.SetView(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                }
-                                                clientdata.ResponseCount++;
-                                                clientdata.channel.NonResponse = 0;
-                                                clientdata.readCompleteData.Clear();
-                                            }));
+                                            byte[] cmd = receive.Slice(70);
+                                            byte[] etc = receive.Slice(70, clientdata.readParameterData.Count - 70);
+                                            clientdata.readParameterData.Clear();
+                                            clientdata.readParameterData.AddRange(etc);
+                                            CheckCommand(cmd, clientdata);
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Error: {0}", clientdata.readCompleteData.ToArray().byteToString());
-                                            clientdata.readCompleteData.Clear();
+                                            clientdata.readParameterData.Clear();
+                                            CheckCommand(receive, clientdata);
                                         }
+                                    }
+                                    else if (s_idx == -1)
+                                    {
+                                        clientdata.readParameterData.Clear();
                                     }
                                     else
                                     {
-                                        if (clientdata.readCompleteData.Count > 70)
-                                            clientdata.readCompleteData.Clear();
+                                        if (receive[s_idx - 1] == 0xEF)
+                                        {
+                                            byte[] command = receive.Slice(s_idx);
+                                            byte[] etc = receive.Slice(s_idx, receive.Length - s_idx);
+
+                                            if (command.Length == 70)
+                                            {
+                                                clientdata.readParameterData.Clear();
+                                                clientdata.readParameterData.AddRange(etc);
+                                            }
+                                            else
+                                            {
+                                                clientdata.readParameterData.Clear();
+                                                clientdata.readParameterData.AddRange(etc);
+                                            }
+                                            CheckCommand(command, clientdata);
+                                        }
+                                        else
+                                        {
+                                            clientdata.readParameterData.Clear();
+                                        }
                                     }
                                 }
                             }
                             else
                             {
-                                if (clientdata.readCompleteData[0] != 0xCC)
+                                byte[] slice = clientdata.readByteData.Slice(result);                                
+                                Array.Clear(clientdata.readByteData, 0, result);
+                                clientdata.readCompleteData.AddRange(slice);
+                                if (clientdata.readCompleteData.Count >= 57)
                                 {
-                                    Console.WriteLine("Head Error: {0}", clientdata.readCompleteData.ToArray().byteToString());
-                                    clientdata.readCompleteData.Clear();
-                                }
-                                else
-                                {
-
-                                    clientdata.readCompleteData.AddRange(slice);
-                                    if (clientdata.readCompleteData.Count > 3 && clientdata.readCompleteData[3] == clientdata.readCompleteData.Count)
+                                    byte[] receive = clientdata.readCompleteData.ToArray();
+                                    int s_idx = getStxIndex(receive);
+                                    Console.WriteLine("s_idx={0} length={1}", s_idx, receive.Length);
+                                    //receive.PrintHex(1);
+                                    if (s_idx == 0)
                                     {
-                                        if (clientdata.readCompleteData.Last() == 0xEF)
+                                        if (receive.Length > 57)
                                         {
-                                            //완료
-                                            //Console.WriteLine("complete4: {0}", clientdata.readCompleteData.ToArray().byteToString());
-                                            clientdata.channel.Dispatcher.Invoke(new Action(() => {
-                                                switch (clientdata.readCompleteData[2])
-                                                {
-                                                    case 0xAA:
-                                                        clientdata.channel.SetView(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0x99:
-                                                        clientdata.channel.ParameterWindow.setParameter(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0xB9:
-                                                        clientdata.channel.ParameterWindow.setError(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                    case 0xA0:
-                                                        clientdata.channel.SetView(clientdata.readCompleteData.ToArray());
-                                                        break;
-                                                }
-                                                clientdata.ResponseCount++;
-                                                clientdata.channel.NonResponse = 0;
-                                                clientdata.readCompleteData.Clear();
-                                            }));
+                                            byte[] cmd = receive.Slice(57);
+                                            byte[] etc = receive.Slice(57, clientdata.readCompleteData.Count - 57);
+                                            clientdata.readCompleteData.Clear();
+                                            clientdata.readCompleteData.AddRange(etc);
+                                            CheckCommand(cmd, clientdata);                                            
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Error: {0}", clientdata.readCompleteData.ToArray().byteToString());
                                             clientdata.readCompleteData.Clear();
+                                            CheckCommand(receive, clientdata);                                            
                                         }
+                                    }
+                                    else if(s_idx == -1)
+                                    {
+                                        clientdata.readCompleteData.Clear();
                                     }
                                     else
                                     {
-                                        if (clientdata.readCompleteData.Count > 70)
+                                        if (receive[s_idx - 1] == 0xEF)
+                                        {
+                                            byte[] command = receive.Slice(s_idx);
+                                            byte[] etc = receive.Slice(s_idx, receive.Length - s_idx);                                          
+                                            
+                                            if (command.Length == 57)
+                                            {
+                                                clientdata.readCompleteData.Clear();
+                                                clientdata.readCompleteData.AddRange(etc);
+                                            }
+                                            else
+                                            {
+                                                clientdata.readCompleteData.Clear();
+                                                clientdata.readCompleteData.AddRange(etc);
+                                            }
+                                            CheckCommand(command, clientdata);
+                                        }
+                                        else
+                                        {
                                             clientdata.readCompleteData.Clear();
+                                        }
                                     }
+
                                 }
                             }
                         }
-                    }
+                    }                    
                 }
                 catch(Exception ex)
                 {
@@ -271,37 +346,18 @@ namespace SmartCaraTest.util
             ClientData data = obj as ClientData;
             while (data.Run)
             {
-                if (data.channel.ParameterMode)
+                if(data.parameterCnt > 0)
                 {
-                    if(data.channel.ParameterCount < 6)
-                    {
-                        byte[] command = Protocol.GetParameter(data.channel.IsNewVersion);
-                        Console.WriteLine("[{0}]write: " + command.byteToString(), DateTime.Now.ToString("HH:mm:ss"));
-                        if (data.client.Connected)
-                        {
-                            data.client.GetStream().Write(command, 0, command.Length);
-                            data.channel.ParameterCount++;
-                        }
-                        else
-                        {
-                            RemoveClient(data);
-                        }
-                    }                    
-                    Thread.Sleep(1000);
-                    continue;
-                }
-                try
-                {
+                    Console.WriteLine("ParameterLoad");
                     byte[] command = null;
-                    if (data.channel.IsNewVersion)
+                    if(data.errorCnt > 0)
                     {
-                        command = Protocol.GetNewCommand(1);
+                        command = Protocol.GetError(data.channel.IsNewVersion);
                     }
                     else
                     {
-                        command = Protocol.GetCommand(1);
+                        command = Protocol.GetParameter(data.channel.IsNewVersion);
                     }
-                    Console.WriteLine("[{0}]write: " + command.byteToString(), DateTime.Now.ToString("HH:mm:ss"));
                     if (data.client.Connected)
                     {
                         data.client.GetStream().Write(command, 0, command.Length);
@@ -310,24 +366,43 @@ namespace SmartCaraTest.util
                     {
                         RemoveClient(data);
                     }
-                    //if (!data.channel.Response)
-                    //{
-                    //    data.channel.NonResponse++;
-                    //    if (data.channel.NonResponse > 20)
-                    //    {
-                    //        data.channel.Dispatcher.BeginInvoke(new Action(() =>
-                    //        {
-                    //            data.channel.Item23.cont.Content = "응답없음";
-                    //        }));
-                    //    }
-                    //}
+                    data.channel.TestTime += TimeSpan.FromSeconds(1);
+                    data.readCompleteData.Clear();
+                    data.parameterCnt--;
                 }
-                catch(Exception ex)
+                else
                 {
-                    Console.WriteLine(ex.ToString());
-                    data.Run = false;
-                    RemoveClient(data);
+                    try
+                    {
+                        byte[] command = null;
+                        if (data.channel.IsNewVersion)
+                        {
+                            command = Protocol.GetNewCommand(1);
+                        }
+                        else
+                        {
+                            command = Protocol.GetCommand(1);
+                        }
+                        //Console.WriteLine("[{0}]write: " + command.byteToString(), DateTime.Now.ToString("HH:mm:ss"));
+                        if (data.client.Connected)
+                        {
+                            data.client.GetStream().Write(command, 0, command.Length);
+                        }
+                        else
+                        {
+                            RemoveClient(data);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                        data.Run = false;
+                        RemoveClient(data);
+                    }
                 }
+                if (data.errorCnt > 0)
+                    data.errorCnt--;
+                data.channel.TestTime += TimeSpan.FromSeconds(1);
                 Thread.Sleep(1000);
             }
         }
@@ -341,6 +416,102 @@ namespace SmartCaraTest.util
             {
                 OnDisconnected(targetClient);
             }
+        }
+
+        private int getStxIndex(byte[] data)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (data[i] == 0xCC)
+                {
+                    if (i + 2 < data.Length)
+                    {
+                        if (data[i + 1] == 0x00)
+                        {
+                            if (data[i + 2] == 0x99 || data[i + 2] == 0xB9 || data[i + 2] == 0xA0 || data[i + 2] == 0xAA)
+                            {
+                                return i;
+                            }
+                        }
+                    }
+                }
+            }
+            return -1;
+        }
+
+        private void CheckCommand(byte[] array, ClientData data)
+        {
+            Console.WriteLine("Function CheckCommand below...");
+            //array.PrintHex(1);
+            //byte check = Protocol.GetCheckSum(array, 1, array.Length - 3);
+            try
+            {
+                switch (array[2])
+                {
+                    case 0xA0:
+                        if (array.Length != 57)
+                            return;
+                        //Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[55].ToString("X2"));
+                        data.channel.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            data.channel.SetView(array);
+                        }));
+                        break;
+                    case 0xAA:
+                        if (array.Length != 57)
+                            return;
+                        //Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[55].ToString("X2"));
+                        data.channel.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            data.channel.SetView(array);
+                        }));
+                        break;
+                    case 0x99:
+                        if (array.Length != 70)
+                            return;
+                        //Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[68].ToString("X2"));
+                        if (data.channel.ParameterMode && data.channel.ParameterWindow != null)
+                        {
+                            data.channel.ParameterWindow.setParameter(array);
+                        }
+                        break;
+                    case 0xB9:
+                        if (array.Length != 70)
+                            return;
+                        //Console.WriteLine("CheckSum: {0}, NewCheckSum: {1}, ReceivedCheckSum: {2}", check.ToString("X2"), (check ^ 0xFF).ToString("X2"), array[68].ToString("X2"));
+                        if (data.channel.ParameterMode && data.channel.ParameterWindow != null)
+                        {
+                            data.channel.ParameterWindow.setError(array);
+                        }
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+        }
+
+        private int getNewStxIndex(byte[] data)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (data[i] == 0x12)
+                {
+                    if (i + 2 < data.Length)
+                    {
+                        if (data[i + 1] == 0x01)
+                        {
+                            if (data[i + 2] == 0x99 || data[i + 2] == 0xB9 || data[i + 2] == 0xA0 || data[i + 2] == 0xAA)
+                            {
+                                return i;
+                            }
+                        }
+                    }
+                }
+            }
+            return -1;
         }
     }
 }

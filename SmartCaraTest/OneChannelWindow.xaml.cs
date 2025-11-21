@@ -1,5 +1,7 @@
-﻿using SmartCaraTest.controls;
+﻿using OxyPlot;
+using SmartCaraTest.controls;
 using SmartCaraTest.data;
+using SmartCaraTest.server;
 using SmartCaraTest.util;
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,9 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
@@ -18,6 +22,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using FontWeights = System.Windows.FontWeights;
+using Timer = System.Timers.Timer;
 
 namespace SmartCaraTest
 {
@@ -25,50 +31,96 @@ namespace SmartCaraTest
     {
         private Dictionary<int, int> seriesList = new Dictionary<int, int>();
         private SerialPort port;
+        public bool Modify = false;
 
         private List<byte> receivedData = new List<byte>();
+        public int parameterCnt = 0;
+        private List<byte> parameterReceived = new List<byte>();
         private Timer timer;
         private TimeSpan TestTime;
         private Timer testTimer;
-
+        private List<OxyColor> colorList = new List<OxyColor>();
+        
         public OneChannelWindow()
         {
             InitializeComponent();
             setItems(channel);
-            
+            FileName.TextChanged += FileName_TextChanged;
             Loaded += OneChannelWindow_Loaded;
             port = new SerialPort();
             port.BaudRate = 9600;
             port.DataReceived += Port_DataReceived;
             PortList.box.ItemsSource = SerialPort.GetPortNames();
             ConnectButton.Click += ConnectButton_Click;
+            RefreshButton.Click += RefreshButton_Click;
             channel.port = port;
             channel.OnTestStart += OnStart;
+            channel.OnParameterLoadAction += Channel_OnParameterLoadAction;
+            channel.OnCheckChanged += Channel_OnCheckChanged;
             timer = new Timer();
             timer.Interval = 1000;
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
+            SaveCheck.Checked += SaveCheck_Checked;
+            SaveCheck.Unchecked += SaveCheck_Unchecked;
             TestTime = TimeSpan.Zero;
             channel.chartView = Chart;
-            //testTimer = new Timer();
-            //testTimer.Interval = 1000;
-            //testTimer.Elapsed += TestTimer_Elapsed;
-            //channel.Item1Check.IsChecked = true;
-            //channel.Item2Check.IsChecked = true;
-            //channel.Item3Check.IsChecked = true;
-            //channel.Item4Check.IsChecked = true;
-            //channel.Item5Check.IsChecked = true;
-            //channel.Item6Check.IsChecked = true;
-            //channel.Item7Check.IsChecked = true;
-            //channel.Item8Check.IsChecked = true;
-            if (channel.chartView != null)
+            colorList.Add(OxyColor.FromRgb(255, 0, 0));
+            colorList.Add(OxyColor.FromRgb(0, 0, 255));
+            colorList.Add(OxyColor.FromRgb(246, 190, 7));
+            colorList.Add(OxyColor.FromRgb(7, 200, 246));
+            colorList.Add(OxyColor.FromRgb(255, 0, 255));
+            colorList.Add(OxyColor.FromRgb(1, 249, 125));
+            colorList.Add(OxyColor.FromRgb(14, 128, 71));
+            colorList.Add(OxyColor.FromRgb(0, 0, 0));
+        }
+
+        private void Channel_OnCheckChanged()
+        {
+            if (parameterReceived == null)
+                parameterReceived = new List<byte>();
+            parameterReceived.Clear();
+            if (receivedData == null)
+                receivedData = new List<byte>();
+            receivedData.Clear();
+            if (channel.Item3Check.IsChecked.Value)
             {
-                channel.chartView.initXAxis();
-                channel.chartView.ItemRun[0] = true;
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item3Check, new object[0]);
+                typeof(System.Windows.Controls.Primitives.ButtonBase).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(channel.Item3Check, new object[0]);
+            }
+            if (channel.IsNewVersion)
+            {
+                channel.Item3.label.Content = "평균히터오프타임";
+            }
+            else
+            {
+                channel.Item3.label.Content = "열풍히터온도";
             }
         }
 
+        private void Channel_OnParameterLoadAction()
+        {
+            if (parameterReceived == null)
+                parameterReceived = new List<byte>();
+            parameterReceived.Clear();
+            parameterCnt = 1;
+        }
 
+        private void SaveCheck_Unchecked(object sender, RoutedEventArgs e)
+        {
+            channel.SaveInDesktop = false;
+        }
+
+        private void SaveCheck_Checked(object sender, RoutedEventArgs e)
+        {
+            channel.SaveInDesktop = true;
+        }
+
+        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            PortList.box.ItemsSource = SerialPort.GetPortNames();
+            PortList.box.SelectedIndex = -1;
+        }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -77,6 +129,15 @@ namespace SmartCaraTest
                 TestTime += TimeSpan.FromSeconds(1);
                 //if (!channel.ParameterMode)
                 //{
+                if (parameterCnt > 0)
+                {
+                    Console.WriteLine("ParameterLoad");
+                    receivedData.Clear();
+                    parameterCnt--;
+                    TestTime += TimeSpan.FromSeconds(1);
+                }
+                else
+                {
                     if (channel.IsNewVersion)
                     {
                         //byte[] command = Protocol.GetNewCommand(1);
@@ -88,83 +149,107 @@ namespace SmartCaraTest
                     {
                         byte[] command = Protocol.GetCommand(1);
                         port.Write(command, 0, command.Length);
-                        Console.WriteLine("command");
+                        command.PrintHex(1);
                     }
-                    
+                }
+
                 //}
             }
         }
 
         private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            int Length = port.BytesToRead;
-            byte[] data = new byte[Length];
-            port.Read(data, 0, Length);
-            receivedData.AddRange(data);
-            data.PrintHex(1);
-            if (channel.IsNewVersion)
+            if(parameterCnt > 0)
             {
-                if (Length > 0)
-                {
-                    if (data.Length == 1)
-                    {
-                        if (data[0] == 0x12)
-                            return;
-                        else if (data[0] == 0x34)
-                        {
-                            receivedData.ToArray().PrintHex(1);
-                            CheckNewDataValid(receivedData.ToArray());
-                            receivedData.Clear();
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        if (data[0] == 0x12 && data[data.Length - 1] == 0x34)
-                        {
-                            receivedData.ToArray().PrintHex(1);
-                            CheckNewDataValid(receivedData.ToArray());
-                            receivedData.Clear();
-                        }
-                        else if (data[data.Length - 1] == 0x34)
-                        {
-                            receivedData.ToArray().PrintHex(1);
-                            CheckNewDataValid(receivedData.ToArray());
-                            receivedData.Clear();
-                        }
-                    }
-                }
+                Thread.Sleep(110);
             }
             else
             {
-                if (Length > 0)
-                {
-                    if (data.Length == 1)
-                    {
-                        if (data[0] == 0xCC)
-                            return;
-                        else if (data[0] == 0xEF)
-                        {
-                            CheckDataValid(receivedData.ToArray());
-                            receivedData.Clear();
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        if (data[0] == 0xCC && data[data.Length - 1] == 0xEF)
-                        {
-                            CheckDataValid(receivedData.ToArray());
-                            receivedData.Clear();
-                        }
-                        else if (data[data.Length - 1] == 0xEF)
-                        {
-                            CheckDataValid(receivedData.ToArray());
-                            receivedData.Clear();
-                        }
-                    }
-                }
-            }         
+                Thread.Sleep(60);
+            }            
+            int Length = port.BytesToRead;
+            byte[] data = new byte[Length];
+            port.Read(data, 0, Length);
+            Console.WriteLine("---------");
+            data.PrintHex(1);
+            Console.WriteLine("---------");
+            receiveData(data, Length);
+            //receivedData.AddRange(data);
+            //data.PrintHex(1);
+            //if (channel.IsNewVersion)
+            //{
+            //    if (Length > 0)
+            //    {
+            //        if (data.Length == 1)
+            //        {
+            //            if (data[0] == 0x12)
+            //                return;
+            //            else if (data[0] == 0x34)
+            //            {
+            //                receivedData.ToArray().PrintHex(1);
+            //                CheckNewDataValid(receivedData.ToArray());
+            //                receivedData.Clear();
+            //                return;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (data[0] == 0x12 && data[data.Length - 1] == 0x34)
+            //            {
+            //                receivedData.ToArray().PrintHex(1);
+            //                CheckNewDataValid(receivedData.ToArray());
+            //                receivedData.Clear();
+            //            }
+            //            else if (data[data.Length - 1] == 0x34)
+            //            {
+            //                receivedData.ToArray().PrintHex(1);
+            //                CheckNewDataValid(receivedData.ToArray());
+            //                receivedData.Clear();
+            //            }
+            //            else
+            //            {
+            //                Console.WriteLine("here");
+            //                receivedData.ToArray().PrintHex();
+            //            }
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    if (Length > 0)
+            //    {
+            //        if (data.Length == 1)
+            //        {
+            //            if (data[0] == 0xCC)
+            //                return;
+            //            else if (data[0] == 0xEF)
+            //            {
+            //                CheckDataValid(receivedData.ToArray());
+            //                receivedData.Clear();
+            //                return;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (data[0] == 0xCC && data[data.Length - 1] == 0xEF)
+            //            {
+            //                Console.WriteLine("perfect");
+            //                CheckDataValid(receivedData.ToArray());
+            //                receivedData.Clear();
+            //            }
+            //            else if (data[data.Length - 1] == 0xEF)
+            //            {
+            //                CheckDataValid(receivedData.ToArray());
+            //                receivedData.Clear();
+            //            }
+            //            else
+            //            {
+            //                Console.WriteLine("here");
+            //                receivedData.ToArray().PrintHex();
+            //            }
+            //        }
+            //    }
+            //}         
         }
 
         private void CheckNewDataValid(byte[] array)
@@ -209,17 +294,14 @@ namespace SmartCaraTest
                             }
                             else
                             {
-                                Log(string.Format("Data Invalid. Data Length : {0}, Expected Length : {1}", command.Length, command[1]));
-                                Log(CommandToString(array));
+                                
                             }
                             command.ToArray().PrintHex(1);
                         }
                     }
                     else
                     {
-                        Console.WriteLine("STX ETX Count Different STX : {0} ETX : {1}", stx_cnt, etx_cnt);
-                        Log(string.Format("STX ETX Count Different STX : {0} ETX : {1}", stx_cnt, etx_cnt));
-                        Log(CommandToString(array));
+                        
                         if (etx_cnt > stx_cnt)
                         {
                             for (int i = 0; i < STXIndex.Count; i++)
@@ -249,6 +331,7 @@ namespace SmartCaraTest
             int etx_cnt = 0;
             List<int> STXIndex = new List<int>();
             List<int> ETXIndex = new List<int>();
+            //array.PrintHex();
             if(array.Length < 3)
             {
                 return;
@@ -284,17 +367,14 @@ namespace SmartCaraTest
                             }
                             else
                             {
-                                Log(string.Format("Data Invalid. Data Length : {0}, Expected Length : {1}", command.Length, command[1]));
-                                Log(CommandToString(array));
+                                
                             }
                             command.ToArray().PrintHex(1);
                         }
                     }
                     else
                     {
-                        Console.WriteLine("STX ETX Count Different STX : {0} ETX : {1}", stx_cnt, etx_cnt);
-                        Log(string.Format("STX ETX Count Different STX : {0} ETX : {1}", stx_cnt, etx_cnt));
-                        Log(CommandToString(array));
+                        
                         if (etx_cnt > stx_cnt)
                         {
                             for (int i = 0; i < STXIndex.Count; i++)
@@ -320,11 +400,17 @@ namespace SmartCaraTest
         
         private void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
+            //new SuperSocketServer().init();
+            //return;
             try
             {
                 if (port.IsOpen)
                 {
                     port.Close();
+                    if(channel.streamWriter != null)
+                    {
+                        channel.streamWriter.Close();
+                    }
                     channel.ConnectState = 0;
                     ConnectButton.Content = "연결";
                     return;
@@ -345,9 +431,7 @@ namespace SmartCaraTest
             {
                 MessageBox.Show("포트를 확인 하세요");
             }
-            catch (IOException ex)
-            {
-                channel.ConnectState = 0;
+            catch (IOException ex) { 
                 ConnectButton.Content = "연결";
                 return;
             }
@@ -364,6 +448,16 @@ namespace SmartCaraTest
             channel.setHandler(Item1Check_Click);
             channel.ConnectState = 0;
             channel.ChannelView.cont.FontWeight = FontWeights.Black;
+            FileName.Text = DateTime.Now.ToString("TEST_yy년MM월dd일HH시mm분ss초");
+            string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            VersionText.Content = "ver: " + version;
+            SaveCheck.IsChecked = true;
+        }
+
+        private void FileName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            channel.FName = FileName.Text;
+            channel.Modify = true;
         }
 
         private void setItems(OneChannelValueDetail item)
@@ -382,12 +476,9 @@ namespace SmartCaraTest
             item.Item15.label.Content = "열풍팬 풍량";
             item.Item16.label.Content = "만수 감지";
 
-            item.Item21.label.Content = "Version";
-            item.Item22.label.Content = "Compile";
-            item.Item23.label.Content = "상태";
-            item.Item24.label.Content = "운전시간";
-            item.Item25.label.Content = "Error";
-            item.Item26.label.Content = "MODE";
+            item.VersionBox.label.Content = "Model";
+            item.CompileBox.label.Content = "Compile";
+            item.Statebox.label.Content = "상태";
 
         }
 
@@ -414,11 +505,12 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[10] = index;
-                            Chart.setLegend(index,  "히터 온도");
-                            Chart.seriesList[index].ItemsSource = channel.list1;
+                            Chart.ViewModel.setSeries(index, 0, colorList[index]);
+                            Chart.setLegend(index, "히터 온도");
+                            //Chart.seriesList[index].ItemsSource = channel.list1;
                             try
                             {
-                                Chart.setAxis(Chart.seriesList[index], 0);
+                                //Chart.setAxis(Chart.seriesList[index], 0);
                             }
                             catch (Exception ex)
                             {
@@ -436,8 +528,9 @@ namespace SmartCaraTest
                         channel.list1.Clear();
                         int index = seriesList[10];
                         seriesList.Remove(10);
+                        Chart.ViewModel.unSetSeries(index);
                         Chart.setLegend(index, "");
-                        Chart.seriesList[index].ItemsSource = null;
+                        //Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item2Check":
@@ -448,8 +541,9 @@ namespace SmartCaraTest
                             int index = getIndex();
                             seriesList[11] = index;
                             Chart.setLegend(index, "배기 온도");
-                            Chart.seriesList[index].ItemsSource = channel.list2;
-                            Chart.setAxis(Chart.seriesList[index], 1);
+                            Chart.ViewModel.setSeries(index, 0, colorList[index]);
+                            //Chart.seriesList[index].ItemsSource = channel.list2;
+                            //Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -462,8 +556,9 @@ namespace SmartCaraTest
                         channel.list2.Clear();
                         int index = seriesList[11];
                         seriesList.Remove(11);
+                        Chart.ViewModel.unSetSeries(index);
                         Chart.setLegend(index, "");
-                        Chart.seriesList[index].ItemsSource = null;
+                        //Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item3Check":
@@ -473,9 +568,19 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[12] = index;
-                            Chart.setLegend(index, "열풍히터온도");
-                            Chart.seriesList[index].ItemsSource = channel.list3;
-                            Chart.setAxis(Chart.seriesList[index], 0);
+                            if (channel.IsNewVersion)
+                            {
+                                Chart.ViewModel.setSeries(index, 1, colorList[index]);
+                                Chart.setLegend(index, "평균히터오프타임");
+                            }
+                            else
+                            {
+                                Chart.ViewModel.setSeries(index, 0, colorList[index]);
+                                Chart.setLegend(index, "열풍히터온도");
+                            }
+                            
+                            //Chart.seriesList[index].ItemsSource = channel.list3;
+                            //Chart.setAxis(Chart.seriesList[index], 0);
                         }
                         else
                         {
@@ -488,8 +593,9 @@ namespace SmartCaraTest
                         channel.list3.Clear();
                         int index = seriesList[12];
                         seriesList.Remove(12);
+                        Chart.ViewModel.unSetSeries(index);
                         Chart.setLegend(index, "");
-                        Chart.seriesList[index].ItemsSource = null;
+                        //Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item4Check":
@@ -499,9 +605,10 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[13] = index;
+                            Chart.ViewModel.setSeries(index, 1, colorList[index]);
                             Chart.setLegend(index, "메인모터운전");
-                            Chart.seriesList[index].ItemsSource = channel.list4;
-                            Chart.setAxis(Chart.seriesList[index], 1);
+                            //Chart.seriesList[index].ItemsSource = channel.list4;
+                            //Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -514,8 +621,9 @@ namespace SmartCaraTest
                         channel.list4.Clear();
                         int index = seriesList[13];
                         seriesList.Remove(13);
+                        Chart.ViewModel.unSetSeries(index);
                         Chart.setLegend(index, "");
-                        Chart.seriesList[index].ItemsSource = null;
+                        //Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item5Check":
@@ -525,9 +633,10 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[14] = index;
+                            Chart.ViewModel.setSeries(index, 1, colorList[index]);
                             Chart.setLegend(index, "히터오프타임");
-                            Chart.seriesList[index].ItemsSource = channel.list5;
-                            Chart.setAxis(Chart.seriesList[index], 1);
+                            //Chart.seriesList[index].ItemsSource = channel.list5;
+                            //Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -540,8 +649,9 @@ namespace SmartCaraTest
                         channel.list5.Clear();
                         int index = seriesList[14];
                         seriesList.Remove(14);
+                        Chart.ViewModel.unSetSeries(index);
                         Chart.setLegend(index, "");
-                        Chart.seriesList[index].ItemsSource = null;
+                        //Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item6Check":
@@ -551,9 +661,10 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[15] = index;
+                            Chart.ViewModel.setSeries(index, 0, colorList[index]);
                             Chart.setLegend(index, "배기온도평균");
-                            Chart.seriesList[index].ItemsSource = channel.list6;
-                            Chart.setAxis(Chart.seriesList[index], 1);
+                            //Chart.seriesList[index].ItemsSource = channel.list6;
+                            //Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -566,8 +677,9 @@ namespace SmartCaraTest
                         channel.list6.Clear();
                         int index = seriesList[15];
                         seriesList.Remove(15);
+                        Chart.ViewModel.unSetSeries(index);
                         Chart.setLegend(index, "");
-                        Chart.seriesList[index].ItemsSource = null;
+                        //Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item7Check":
@@ -577,9 +689,10 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[16] = index;
+                            Chart.ViewModel.setSeries(index, 1, colorList[index]);
                             Chart.setLegend(index, "열풍히터Duty");
-                            Chart.seriesList[index].ItemsSource = channel.list7;
-                            Chart.setAxis(Chart.seriesList[index], 1);
+                            //Chart.seriesList[index].ItemsSource = channel.list7;
+                            //Chart.setAxis(Chart.seriesList[index], 1);
                         }
                         else
                         {
@@ -592,8 +705,9 @@ namespace SmartCaraTest
                         channel.list7.Clear();
                         int index = seriesList[16];
                         seriesList.Remove(16);
+                        Chart.ViewModel.unSetSeries(index);
                         Chart.setLegend(index, "");
-                        Chart.seriesList[index].ItemsSource = null;
+                        //Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
                 case "Item8Check":
@@ -603,9 +717,10 @@ namespace SmartCaraTest
                         {
                             int index = getIndex();
                             seriesList[17] = index;
+                            Chart.ViewModel.setSeries(index, 2, colorList[index]);
                             Chart.setLegend(index, "메인모터전류");
-                            Chart.seriesList[index].ItemsSource = channel.list8;
-                            Chart.setAxis(Chart.seriesList[index], 2);
+                            //Chart.seriesList[index].ItemsSource = channel.list8;
+                            //Chart.setAxis(Chart.seriesList[index], 2);
                         }
                         else
                         {
@@ -618,8 +733,9 @@ namespace SmartCaraTest
                         channel.list8.Clear();
                         int index = seriesList[17];
                         seriesList.Remove(17);
+                        Chart.ViewModel.unSetSeries(index);
                         Chart.setLegend(index, "");
-                        Chart.seriesList[index].ItemsSource = null;
+                        //Chart.seriesList[index].ItemsSource = null;
                     }
                     break;
             }
