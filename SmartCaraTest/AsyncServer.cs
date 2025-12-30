@@ -52,8 +52,6 @@ namespace SmartCaraTest
             //CheckThread.Start();
         }        
 
-        
-
         private void StateCheckLoop()
         {
             while (run)

@@ -55,7 +55,16 @@
             <local:DoubleLabel Grid.Row="6" Grid.Column="5" Margin="5, 3" x:Name="Statebox" TitleBackground="#EEE"/>
             <local:ModeTimeLabel Grid.Row="2" Grid.RowSpan="2" Grid.Column="6" Margin="5, 3" x:Name="ModeTimeView"/>
             <!--<local:DoubleLabel Grid.Row="6" Grid.Column="5" Margin="5, 3" x:Name="Item26" TitleBackground="#EEE"/>-->
-            <Label Grid.Row="2" Grid.RowSpan="2" Grid.Column="5" Margin="5, 3"  BorderBrush="#000" BorderThickness="1" x:Name="StateContent" FontSize="18" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Label Grid.Row="2" Grid.RowSpan="2" Grid.Column="5" Margin="5,3" BorderBrush="#000" BorderThickness="1" x:Name="StateContent" FontSize="15" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" MaxWidth="180">  
+                <Label.ContentTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}"
+                       TextWrapping="WrapWithOverflow"
+                       TextAlignment="Center"
+                       Foreground="#333333"/>
+                    </DataTemplate>
+                </Label.ContentTemplate>
+            </Label>
             <local:DoubleLabel TitleBroderBrush="Black" ContentBroderBrush="Black" ContentSize="16" TitleSize="16" Grid.RowSpan="1" x:Name="ChannelView" Grid.Row="1" Grid.Column="5" TitleBackground="#FFF" Margin="5, 3" Title="연결상태"/>
             <CheckBox Content="신버전 적용" Grid.Column="6" Grid.Row="1" Height="35" FontSize="20" VerticalContentAlignment="Center" Margin="5, 3" x:Name="ApplyNewVersion"/>
             <Button Padding="0" x:Name="ParameterButton" Grid.Row="4" Grid.Column="6" Margin="5, 3" Content="파라미터" FontSize="17"/>
